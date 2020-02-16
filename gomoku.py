@@ -82,6 +82,11 @@ def main():
         for player in [player1, player2]:
             id, board = turn(board, player)            
             print(board)
+            # REMOVE BEFORE FINAL SUBMISSION
+            print("")
+            input("press any key to continue...")
+            print("")
+            # REMOVE BEFORE FINAL SUBMISSION
             if id != 0:
                 print("Winner: " + str(id))
                 end = True
