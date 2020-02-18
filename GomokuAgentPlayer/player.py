@@ -60,6 +60,7 @@ def observe_opponent_tiles(board, other_id):
 # this looks at the opponents tiles and returns you any lines between the min and max size
 # to find just split rows of 3, a min and max size of four would be needed and gap_allowed would need to be true.
 # TODO this is ridiculous, can be cut down by generalising and creating smaller functions, not priority right now.
+# TODO say you are looking for open 4's and there is an arrangement 1011101, it will only find the first one
 def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False):
     lines = []
     lines_with_gap = []
