@@ -240,6 +240,7 @@ def is_in(element, list_of_elements):
             return True
     return False
 
+
 # this takes in a tile location and looks one square in the specified direction
 def look(tile, direction):
     if direction == LEFT:
