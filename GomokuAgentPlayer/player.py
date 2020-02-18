@@ -21,14 +21,14 @@ class Player(GomokuAgent):
             print("opponent id is: " + str(opponent_id))
         if player_id == 0:
             player_id = self.ID
+        opponent_tiles = observe_opponent_tiles(board, opponent_id)
+        opponent_tiles.sort()
+        split_lines = look_for_lines(board, opponent_tiles, 4, 4, True)
+        print_lines(split_lines)
         while True:
-            opponent_tiles = observe_opponent_tiles(board, opponent_id)
-            opponent_tiles.sort()
-            lines = look_for_lines(board, opponent_tiles, 5, 5, True)
-            print_lines(lines)
             move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
-            print("Placing a tile at: " + str(move_loc))
             if legalMove(board, move_loc):
+                print("Placing a tile at: " + str(move_loc))
                 return move_loc
 
 
@@ -58,6 +58,7 @@ def observe_opponent_tiles(board, other_id):
 
 
 # this looks at the opponents tiles and returns you any lines between the min and max size
+# to find just split rows of 3, a min and max size of four would be needed and gap_allowed would need to be true.
 # TODO this is ridiculous, can be cut down by generalising and creating smaller functions, not priority right now.
 def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False):
     lines = []
@@ -153,14 +154,13 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
         else:
             gap_used = True
         for poss_tile in poss_tiles_horizontal:
-            if is_in(poss_tile, opponent_tiles) or (gap_used is False):
+            if is_in(poss_tile, opponent_tiles) or (gap_used is False and board[poss_tile[0]][poss_tile[1]] == 0):
                 if not is_in(poss_tile, opponent_tiles):
                     gap_used = True
                 curr_line.append(poss_tile)
             else:
                 if len(curr_line) >= min_size and curr_line not in lines:
                     if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
-                        print("CURR LINE: " + str(curr_line))
                         lines.append(curr_line.copy())
                 curr_line.clear()
                 if gap_allowed:
@@ -179,7 +179,6 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
             else:
                 if len(curr_line) >= min_size and curr_line not in lines:
                     if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
-                        print("CURR LINE: " + str(curr_line))
                         lines.append(curr_line.copy())
                 curr_line.clear()
                 if gap_allowed:
@@ -198,7 +197,6 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
             else:
                 if len(curr_line) >= min_size and curr_line not in lines:
                     if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
-                        print("CURR LINE: " + str(curr_line))
                         lines.append(curr_line.copy())
                 curr_line.clear()
                 if gap_allowed:
@@ -217,14 +215,17 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
             else:
                 if len(curr_line) >= min_size and curr_line not in lines:
                     if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
-                        print("CURR LINE: " + str(curr_line))
                         lines.append(curr_line.copy())
                 curr_line.clear()
                 if gap_allowed:
                     gap_used = False
 
         for line in lines:
-            if np.isin(0, line):
+            first_pos = board[line[0][0]][line[0][1]]
+            last_pos = board[line[len(line)-1][0]][line[len(line)-1][1]]
+            if first_pos == 0 or last_pos == 0:
+                lines.remove(line)
+            elif np.isin(0, line):
                 lines_with_gap.append(line)
                 lines.remove(line)
     if gap_allowed:
