@@ -4,6 +4,7 @@ from misc import legalMove
 from gomokuAgent import GomokuAgent
 
 opponent_id = 0
+player_id = 0
 priority_moves_queue = []
 UP = "up"
 DOWN = "down"
@@ -14,13 +15,16 @@ RIGHT = "right"
 class Player(GomokuAgent):
     def move(self, board):
         global opponent_id
+        global player_id
         if opponent_id == 0:
             opponent_id = get_opponent_id(board, self.ID)
             print("opponent id is: " + str(opponent_id))
+        if player_id == 0:
+            player_id = self.ID
         while True:
             opponent_tiles = observe_opponent_tiles(board, opponent_id)
             opponent_tiles.sort()
-            lines = look_for_lines(board, opponent_tiles, 3, 4)
+            lines = look_for_lines(board, opponent_tiles, 5, 5, True)
             print_lines(lines)
             move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
             print("Placing a tile at: " + str(move_loc))
@@ -35,10 +39,11 @@ def print_lines(lines):
 
 
 # this retrieves the id of the opponent for checking state in the future, only done once per game
-def get_opponent_id(board, player_id):
+# TODO now that player id is global this can be removed from the input variables
+def get_opponent_id(board, players_id):
     for row in board:
         for tile in row:
-            if tile != player_id and tile != 0:
+            if tile != players_id and tile != 0:
                 return tile
 
 
@@ -54,8 +59,9 @@ def observe_opponent_tiles(board, other_id):
 
 # this looks at the opponents tiles and returns you any lines between the min and max size
 # TODO this is ridiculous, can be cut down by generalising and creating smaller functions, not priority right now.
-def look_for_lines(board, opponent_tiles, min_size, max_size):
+def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False):
     lines = []
+    lines_with_gap = []
     for tile in opponent_tiles:
         poss_tiles_horizontal = []
         poss_tiles_vertical = []
@@ -142,41 +148,89 @@ def look_for_lines(board, opponent_tiles, min_size, max_size):
         poss_tiles_diag_2.sort()
         curr_line = []
 
+        if gap_allowed:
+            gap_used = False
+        else:
+            gap_used = True
         for poss_tile in poss_tiles_horizontal:
-            if is_in(poss_tile, opponent_tiles):
+            if is_in(poss_tile, opponent_tiles) or (gap_used is False):
+                if not is_in(poss_tile, opponent_tiles):
+                    gap_used = True
                 curr_line.append(poss_tile)
             else:
                 if len(curr_line) >= min_size and curr_line not in lines:
-                    lines.append(curr_line.copy())
+                    if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
+                        print("CURR LINE: " + str(curr_line))
+                        lines.append(curr_line.copy())
                 curr_line.clear()
+                if gap_allowed:
+                    gap_used = False
 
         curr_line.clear()
+        if gap_allowed:
+            gap_used = False
+        else:
+            gap_used = True
         for poss_tile in poss_tiles_vertical:
-            if is_in(poss_tile, opponent_tiles):
+            if is_in(poss_tile, opponent_tiles) or (gap_used is False and board[poss_tile[0]][poss_tile[1]] == 0):
+                if not is_in(poss_tile, opponent_tiles):
+                    gap_used = True
                 curr_line.append(poss_tile)
             else:
                 if len(curr_line) >= min_size and curr_line not in lines:
-                    lines.append(curr_line.copy())
+                    if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
+                        print("CURR LINE: " + str(curr_line))
+                        lines.append(curr_line.copy())
                 curr_line.clear()
+                if gap_allowed:
+                    gap_used = False
 
         curr_line.clear()
+        if gap_allowed:
+            gap_used = False
+        else:
+            gap_used = True
         for poss_tile in poss_tiles_diag_1:
-            if is_in(poss_tile, opponent_tiles):
+            if is_in(poss_tile, opponent_tiles) or (gap_used is False and board[poss_tile[0]][poss_tile[1]] == 0):
+                if not is_in(poss_tile, opponent_tiles):
+                    gap_used = True
                 curr_line.append(poss_tile)
             else:
                 if len(curr_line) >= min_size and curr_line not in lines:
-                    lines.append(curr_line.copy())
+                    if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
+                        print("CURR LINE: " + str(curr_line))
+                        lines.append(curr_line.copy())
                 curr_line.clear()
+                if gap_allowed:
+                    gap_used = False
 
         curr_line.clear()
+        if gap_allowed:
+            gap_used = False
+        else:
+            gap_used = True
         for poss_tile in poss_tiles_diag_2:
-            if is_in(poss_tile, opponent_tiles):
+            if is_in(poss_tile, opponent_tiles) or (gap_used is False and board[poss_tile[0]][poss_tile[1]] == 0):
+                if not is_in(poss_tile, opponent_tiles):
+                    gap_used = True
                 curr_line.append(poss_tile)
             else:
                 if len(curr_line) >= min_size and curr_line not in lines:
-                    lines.append(curr_line.copy())
+                    if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
+                        print("CURR LINE: " + str(curr_line))
+                        lines.append(curr_line.copy())
                 curr_line.clear()
-    return lines
+                if gap_allowed:
+                    gap_used = False
+
+        for line in lines:
+            if np.isin(0, line):
+                lines_with_gap.append(line)
+                lines.remove(line)
+    if gap_allowed:
+        return lines_with_gap
+    else:
+        return lines
 
 
 # checks if an element is in a list of elements, for comparing lists of lists as it is more complicated than np.isin()
@@ -185,11 +239,6 @@ def is_in(element, list_of_elements):
         if np.equal(list_element, element).all():
             return True
     return False
-
-
-# not implemented
-def look_for_split_groups(board, opponent_tiles, size):
-    return None
 
 
 # this takes in a tile location and looks one square in the specified direction
