@@ -53,12 +53,19 @@ def observe_opponent_tiles(board, other_id):
 
 
 # this looks at the opponents tiles and returns you any lines between the min and max size
+# TODO this is ridiculous, can be cut down by generalising and creating smaller functions, not priority right now.
 def look_for_lines(board, opponent_tiles, min_size, max_size):
     lines = []
     for tile in opponent_tiles:
         poss_tiles_horizontal = []
         poss_tiles_vertical = []
+        # we need to make two diagonal list to make sure rows are formed properly
+        # this list starts from the bottom left and goes to top right
+        poss_tiles_diag_1 = []
+        # this list starts from the top left and goes to the bottom right
+        poss_tiles_diag_2 = []
 
+        # STARTING HORIZONTAL SEARCH
         # first we look left
         curr_tile = tile.copy()
         for i in range(max_size-1):
@@ -73,6 +80,7 @@ def look_for_lines(board, opponent_tiles, min_size, max_size):
             if curr_tile[1] < len(board[0]):
                 poss_tiles_horizontal.append(curr_tile.copy())
 
+        # STARTING VERTICAL SEARCH
         # now we look up
         curr_tile = tile.copy()
         for i in range(max_size - 1):
@@ -87,14 +95,53 @@ def look_for_lines(board, opponent_tiles, min_size, max_size):
             if curr_tile[0] < len(board):
                 poss_tiles_vertical.append(curr_tile.copy())
 
+        # STARTING DIAGONAL SEARCH
+        # now we look down and left
+        curr_tile = tile.copy()
+        for i in range(max_size - 1):
+            curr_tile = look(curr_tile, DOWN)
+            curr_tile = look(curr_tile, LEFT)
+            if curr_tile[0] < len(board) and curr_tile[1] > 0:
+                poss_tiles_diag_1.append(curr_tile.copy())
+
+        # now we look up and right
+        curr_tile = tile.copy()
+        for i in range(max_size - 1):
+            curr_tile = look(curr_tile, UP)
+            curr_tile = look(curr_tile, RIGHT)
+            if curr_tile[0] > 0 and curr_tile[1] < len(board[0]):
+                poss_tiles_diag_1.append(curr_tile.copy())
+
+        # now we look up and left
+        curr_tile = tile.copy()
+        for i in range(max_size - 1):
+            curr_tile = look(curr_tile, UP)
+            curr_tile = look(curr_tile, LEFT)
+            if curr_tile[0] > 0 and curr_tile[1] > 0:
+                poss_tiles_diag_2.append(curr_tile.copy())
+
+        # now we look down and right
+        curr_tile = tile.copy()
+        for i in range(max_size - 1):
+            curr_tile = look(curr_tile, DOWN)
+            curr_tile = look(curr_tile, RIGHT)
+            if curr_tile[0] < len(board) and curr_tile[1] < len(board[0]):
+                poss_tiles_diag_2.append(curr_tile.copy())
+
         # append the original tile for both lists
         poss_tiles_horizontal.append(tile.copy())
         poss_tiles_vertical.append(tile.copy())
+        poss_tiles_diag_1.append(tile.copy())
+        poss_tiles_diag_2.append(tile.copy())
 
         # now to check all of these tiles for connected lines
+        # these must be sorted so elements are gone through in order
         poss_tiles_horizontal.sort()
         poss_tiles_vertical.sort()
+        poss_tiles_diag_1.sort()
+        poss_tiles_diag_2.sort()
         curr_line = []
+
         for poss_tile in poss_tiles_horizontal:
             if is_in(poss_tile, opponent_tiles):
                 curr_line.append(poss_tile)
@@ -102,8 +149,27 @@ def look_for_lines(board, opponent_tiles, min_size, max_size):
                 if len(curr_line) >= min_size and curr_line not in lines:
                     lines.append(curr_line.copy())
                 curr_line.clear()
+
         curr_line.clear()
         for poss_tile in poss_tiles_vertical:
+            if is_in(poss_tile, opponent_tiles):
+                curr_line.append(poss_tile)
+            else:
+                if len(curr_line) >= min_size and curr_line not in lines:
+                    lines.append(curr_line.copy())
+                curr_line.clear()
+
+        curr_line.clear()
+        for poss_tile in poss_tiles_diag_1:
+            if is_in(poss_tile, opponent_tiles):
+                curr_line.append(poss_tile)
+            else:
+                if len(curr_line) >= min_size and curr_line not in lines:
+                    lines.append(curr_line.copy())
+                curr_line.clear()
+
+        curr_line.clear()
+        for poss_tile in poss_tiles_diag_2:
             if is_in(poss_tile, opponent_tiles):
                 curr_line.append(poss_tile)
             else:
