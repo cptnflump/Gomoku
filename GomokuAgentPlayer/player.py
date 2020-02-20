@@ -10,6 +10,10 @@ UP = "up"
 DOWN = "down"
 LEFT = "left"
 RIGHT = "right"
+VERTICAL = "vertical"
+HORIZONTAL = "horizontal"
+DIAG_BOT_LEFT = "diag_bot_left"
+DIAG_TOP_LEFT = "diag_top_left"
 
 
 class Player(GomokuAgent):
@@ -23,13 +27,49 @@ class Player(GomokuAgent):
             player_id = self.ID
         opponent_tiles = observe_opponent_tiles(board, opponent_id)
         opponent_tiles.sort()
-        split_lines = look_for_lines(board, opponent_tiles, 4, 4, True)
-        print_lines(split_lines)
-        while True:
-            move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
-            if legalMove(board, move_loc):
-                print("Placing a tile at: " + str(move_loc))
-                return move_loc
+        split_threes = look_for_lines(board, opponent_tiles, 4, 4, True)
+        split_fours = look_for_lines(board, opponent_tiles, 5, 5, True)
+        open_threes = look_for_lines(board, opponent_tiles, 3, 3, False)
+        open_fours = look_for_lines(board, opponent_tiles, 4, 4, False)
+        print(open_threes)
+        best_coord = choose_loc(open_threes, open_fours, split_threes, split_fours, board)
+        if best_coord is None:
+            print("Choosing coord randomly.")
+            while True:
+                move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
+                if legalMove(board, move_loc):
+                    print("Placing a tile at: " + str(move_loc))
+                    return move_loc
+        print("Choosing coord based on opponent placements.")
+        return best_coord
+
+
+# TODO this isn't functioning yet. adapt it to work with each dictionary key
+def choose_loc(open_threes, open_fours, split_threes, split_fours, board):
+    used_list = []
+    if split_fours:
+        used_list = split_fours
+    elif open_fours:
+        used_list = open_fours
+    elif split_threes:
+        used_list = split_threes
+    elif open_threes:
+        used_list = open_threes
+    else:
+        return None
+    print("TEST")
+    print(used_list)
+
+    line_to_extract = used_list[0]
+    move_loc = None
+    for coord in line_to_extract:
+        print("TEST")
+        print(board[coord[0]][coord[1]])
+        if board[coord[0]][coord[1]] == 0:
+            move_loc = coord
+            print(line_to_extract)
+            print("COORD: " + str(move_loc))
+    return move_loc
 
 
 # temp method just for printing lines as np.matrix() didn't work
@@ -63,7 +103,18 @@ def observe_opponent_tiles(board, other_id):
 # TODO say you are looking for open 4's and there is an arrangement 1011101, it will only find the first one
 def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False):
     lines = []
-    lines_with_gap = []
+    lines_dic = {
+        HORIZONTAL: [],
+        VERTICAL: [],
+        DIAG_BOT_LEFT: [],
+        DIAG_TOP_LEFT: []
+    }
+    lines_with_gap_dic = {
+        HORIZONTAL: [],
+        VERTICAL: [],
+        DIAG_BOT_LEFT: [],
+        DIAG_TOP_LEFT: []
+    }
     for tile in opponent_tiles:
         poss_tiles_horizontal = []
         poss_tiles_vertical = []
@@ -163,6 +214,7 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
                 if len(curr_line) >= min_size and curr_line not in lines:
                     if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
                         lines.append(curr_line.copy())
+                        lines_dic[HORIZONTAL].append(curr_line.copy())
                 curr_line.clear()
                 if gap_allowed:
                     gap_used = False
@@ -181,6 +233,7 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
                 if len(curr_line) >= min_size and curr_line not in lines:
                     if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
                         lines.append(curr_line.copy())
+                        lines_dic[VERTICAL].append(curr_line.copy())
                 curr_line.clear()
                 if gap_allowed:
                     gap_used = False
@@ -199,6 +252,7 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
                 if len(curr_line) >= min_size and curr_line not in lines:
                     if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
                         lines.append(curr_line.copy())
+                        lines_dic[DIAG_BOT_LEFT].append(curr_line.copy())
                 curr_line.clear()
                 if gap_allowed:
                     gap_used = False
@@ -217,22 +271,25 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
                 if len(curr_line) >= min_size and curr_line not in lines:
                     if curr_line[0] != 0 and curr_line[len(curr_line)-1] != 0:
                         lines.append(curr_line.copy())
+                        lines_dic[DIAG_TOP_LEFT].append(curr_line.copy())
                 curr_line.clear()
                 if gap_allowed:
                     gap_used = False
 
+    for option in lines_dic:
+        lines = lines_dic[option]
         for line in lines:
             first_pos = board[line[0][0]][line[0][1]]
             last_pos = board[line[len(line)-1][0]][line[len(line)-1][1]]
             if first_pos == 0 or last_pos == 0:
                 lines.remove(line)
             elif np.isin(0, line):
-                lines_with_gap.append(line)
-                lines.remove(line)
+                lines_with_gap_dic[option].append(line)
+                lines_dic[option].pop(line)
     if gap_allowed:
-        return lines_with_gap
+        return lines_with_gap_dic
     else:
-        return lines
+        return lines_dic
 
 
 # checks if an element is in a list of elements, for comparing lists of lists as it is more complicated than np.isin()
