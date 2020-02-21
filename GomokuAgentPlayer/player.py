@@ -31,24 +31,26 @@ class Player(GomokuAgent):
         split_fours = look_for_lines(board, opponent_tiles, 5, 5, True)
         open_threes = look_for_lines(board, opponent_tiles, 3, 3, False)
         open_fours = look_for_lines(board, opponent_tiles, 4, 4, False)
-        print(open_threes)
         best_coord = choose_loc(open_threes, open_fours, split_threes, split_fours, board)
-        best_coord = None
         if best_coord is None or best_coord == 0:
-            if best_coord == 0:
-                print("Best coord is 0, an error has occured")
             print("Choosing coord randomly.")
-            while True:
-                move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
-                if legalMove(board, move_loc):
-                    print("Placing a tile at: " + str(move_loc))
-                    return move_loc
+            return move_randomly(self, board)
+        elif not legalMove(board, best_coord):
+            print("Non legal move made. Choosing coord randomly.")
+            return move_randomly(self, board)
         print("Choosing coord based on opponent placements.")
         print("CO ORD CHOSEN: " + str(best_coord))
         return best_coord
 
 
-# TODO this isn't functioning yet. adapt it to work with each dictionary key
+def move_randomly(self, board):
+    while True:
+        move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
+        if legalMove(board, move_loc):
+            print("Placing a tile at: " + str(move_loc))
+            return move_loc
+
+# TODO this is semi functioning, it needs to start checking for a 0 in the return space 
 def choose_loc(open_threes, open_fours, split_threes, split_fours, board):
     local_board = board.copy()
     direction = None
@@ -66,17 +68,20 @@ def choose_loc(open_threes, open_fours, split_threes, split_fours, board):
         used_dic = open_threes
     else:
         return None
-
+    print("USED DIC: " + str(used_dic))
     for direction_list in used_dic:
         if used_dic[direction_list]:
             used_list = used_dic[direction_list]
             direction = direction_list
+    print("DIRECTON " + direction)
     line_to_extract = used_list[0]
-
+    print("LINE TO EXTRACT " + str(line_to_extract))
+    print("IS SPLIT: " + str(is_split))
     if is_split:
         for pos in line_to_extract:
+            print(local_board[pos[0]][pos[1]])
             if local_board[pos[0]][pos[1]] == 0:
-                return tuple(local_board[pos[0]][pos[1]])
+                return tuple(pos)
     else:
         start_pos = line_to_extract[0]
         end_pos = line_to_extract[len(line_to_extract)-1]
@@ -97,12 +102,12 @@ def choose_loc(open_threes, open_fours, split_threes, split_fours, board):
         elif direction == DIAG_BOT_LEFT:
             if start_pos[0] < len(local_board[0])-1 and start_pos[1] > 0:
                 return_pos = start_pos
-                return_pos[0] = start_pos[0] + 1
-                return_pos[1] = start_pos[1] - 1
-            else:
-                return_pos = end_pos
                 return_pos[0] = start_pos[0] - 1
                 return_pos[1] = start_pos[1] + 1
+            else:
+                return_pos = end_pos
+                return_pos[0] = start_pos[0] + 1
+                return_pos[1] = start_pos[1] - 1
         elif direction == DIAG_TOP_LEFT:
             if start_pos[0] > 0 and start_pos[1] > 0:
                 return_pos = start_pos
@@ -114,6 +119,7 @@ def choose_loc(open_threes, open_fours, split_threes, split_fours, board):
                 return_pos[1] = end_pos[1] + 1
         else:
             return None
+        print(return_pos)
         return tuple(return_pos)
 
 
