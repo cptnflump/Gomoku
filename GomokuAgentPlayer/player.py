@@ -31,23 +31,26 @@ class Player(GomokuAgent):
         split_fours = look_for_lines(board, opponent_tiles, 5, 5, True)
         open_threes = look_for_lines(board, opponent_tiles, 3, 3, False)
         open_fours = look_for_lines(board, opponent_tiles, 4, 4, False)
-        print(open_threes)
         best_coord = choose_loc(open_threes, open_fours, split_threes, split_fours, board)
         if best_coord is None or best_coord == 0:
-            if best_coord == 0:
-                print("Best coord is 0, an error has occured")
             print("Choosing coord randomly.")
-            while True:
-                move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
-                if legalMove(board, move_loc):
-                    print("Placing a tile at: " + str(move_loc))
-                    return move_loc
+            return move_randomly(self, board)
+        elif not legalMove(board, best_coord):
+            print("Non legal move made. Choosing coord randomly.")
+            return move_randomly(self, board)
         print("Choosing coord based on opponent placements.")
         print("CO ORD CHOSEN: " + str(best_coord))
         return best_coord
 
 
-# TODO this isn't functioning yet. adapt it to work with each dictionary key
+def move_randomly(self, board):
+    while True:
+        move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
+        if legalMove(board, move_loc):
+            print("Placing a tile at: " + str(move_loc))
+            return move_loc
+
+# TODO this is semi functioning, it needs to start checking for a 0 in the return space 
 def choose_loc(open_threes, open_fours, split_threes, split_fours, board):
     local_board = board.copy()
     direction = None
