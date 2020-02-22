@@ -1,11 +1,15 @@
+# Imports
 import numpy as np
 
 from misc import legalMove
 from gomokuAgent import GomokuAgent
 
+# Variables
 opponent_id = 0
 player_id = 0
 priority_moves_queue = []
+
+# Constants
 UP = "up"
 DOWN = "down"
 LEFT = "left"
@@ -16,7 +20,9 @@ DIAG_BOT_LEFT = "diag_bot_left"
 DIAG_TOP_LEFT = "diag_top_left"
 
 
+# Player Class
 class Player(GomokuAgent):
+    # Makes a legal player move depending on the opponents current tiles, and the 'best' move to make.
     def move(self, board):
         global opponent_id
         global player_id
@@ -42,7 +48,7 @@ class Player(GomokuAgent):
         print("CO ORD CHOSEN: " + str(best_coord))
         return best_coord
 
-
+# Makes a random legal move.
 def move_randomly(self, board):
     while True:
         move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
@@ -123,13 +129,13 @@ def choose_loc(open_threes, open_fours, split_threes, split_fours, board):
         return tuple(return_pos)
 
 
-# temp method just for printing lines as np.matrix() didn't work
+#(?)  TEMP METHOD: Prints out lines.
 def print_lines(lines):
     for line in lines:
         print(line)
 
 
-# this retrieves the id of the opponent for checking state in the future, only done once per game
+# Returns the opponents ID. Only called once per game.
 def get_opponent_id(board):
     for row in board:
         for tile in row:
@@ -138,6 +144,7 @@ def get_opponent_id(board):
 
 
 # this looks at the board and returns the coordinates for every opponent tile
+# Returns the co-ordinates (as a list of tuples) of the opponents tiles
 def observe_opponent_tiles(board, other_id):
     coords = []
     for i in range(len(board)):
@@ -147,6 +154,7 @@ def observe_opponent_tiles(board, other_id):
     return coords
 
 
+# TODO: Sort this cluster-fuck out.
 # this looks at the opponents tiles and returns you any lines between the min and max size
 # to find just split rows of 3, a min and max size of four would be needed and gap_allowed would need to be true.
 # TODO this is ridiculous, can be cut down by generalising and creating smaller functions, not priority right now.
@@ -342,7 +350,7 @@ def look_for_lines(board, opponent_tiles, min_size, max_size, gap_allowed=False)
         return lines_dic
 
 
-# checks if an element is in a list of elements, for comparing lists of lists as it is more complicated than np.isin()
+# Checks if an element is in a list of elements. Used for comparing lists of lists (due to the fact it's more complicated than np.isin()).
 def is_in(element, list_of_elements):
     for list_element in list_of_elements:
         if np.equal(list_element, element).all():
@@ -350,7 +358,7 @@ def is_in(element, list_of_elements):
     return False
 
 
-# this takes in a tile location and looks one square in the specified direction
+# Takes in a tile location and direction and looks one square in that specified direction.
 def look(tile, direction):
     if direction == LEFT:
         new_tile = tile

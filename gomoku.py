@@ -33,12 +33,12 @@ def handler(signum, frame):
 def turn(board, player):
 
     # set the time out alarm and call player's move function
-    signal.alarm(TIME_OUT)
+    # signal.alarm(TIME_OUT)
     try:
         moveLoc = player.move(board)
     except timeOutException:        
         return player.ID*-1, board
-    signal.alarm(0)
+    # signal.alarm(0)
     
     # test if the move is legal
     if legalMove(board, moveLoc):
@@ -73,7 +73,7 @@ def main():
     board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype=int)
 
     # connect the alarm signal with the handler
-    signal.signal(signal.SIGALRM, handler)
+    # signal.signal(signal.SIGALRM, handler)
     
     # play the game
     winner = 0
