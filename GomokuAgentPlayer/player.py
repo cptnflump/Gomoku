@@ -31,7 +31,7 @@ class Player(GomokuAgent):
         if opponent_id == 0:
             opponent_id = get_opponent_id(board)
             print("opponent id is: " + str(opponent_id))
-        opponent_tiles = observe_opponent_tiles(board, opponent_id)
+        opponent_tiles = get_opponent_tiles(board, opponent_id)
         opponent_tiles.sort()
         split_threes = look_for_lines(board, opponent_tiles, 4, 4, True)
         split_fours = look_for_lines(board, opponent_tiles, 5, 5, True)
@@ -143,15 +143,35 @@ def get_opponent_id(board):
                 return tile
 
 
-# this looks at the board and returns the coordinates for every opponent tile
-# Returns the co-ordinates (as a list of tuples) of the opponents tiles
-def observe_opponent_tiles(board, other_id):
+# Returns the co-ordinates of the opponent tiles
+def get_opponent_tiles(board, other_id):
     coords = []
     for i in range(len(board)):
         for j in range(len(board[i])):
             if board[i][j] == other_id:
                 coords.append([i, j])
     return coords
+
+
+# Returns the co-ordinates of all player tiles
+def get_player_tiles(board, player_id):
+    coords = []
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            if board[i][j] == player_id:
+                coords.append([i, j])
+    return coords
+
+
+# Returns the co-ordinates of all empty  tiles
+def get_player_tiles(board):
+    coords = []
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            if board[i][j] == 0:
+                coords.append([i, j])
+    return coords
+
 
 
 # TODO: Sort this cluster-fuck out.
