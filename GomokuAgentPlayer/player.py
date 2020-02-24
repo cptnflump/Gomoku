@@ -36,30 +36,50 @@ class Player(GomokuAgent):
             
         opponent_tiles = get_opponent_tiles(board, opponent_id)
         opponent_tiles.sort()
+        
+        empty_tiles = get_empty_tiles(board)
+        
         split_threes = look_for_lines(board, opponent_tiles, 4, 4, True)
         split_fours = look_for_lines(board, opponent_tiles, 5, 5, True)
         open_threes = look_for_lines(board, opponent_tiles, 3, 3, False)
         open_fours = look_for_lines(board, opponent_tiles, 4, 4, False)
 
         best_coord = choose_loc(open_threes, open_fours, split_threes, split_fours, board)
+        
+        if (check_centre(board) is not None):
+            print ("Centre tile free.")
+            best_coord = check_centre(board)
 
-        if best_coord is None or best_coord == 0:
-            print("Choosing coord randomly.")
-            return move_randomly(self, board)
-        elif not legalMove(board, best_coord):
-            print("Non legal move made. Choosing coord randomly.")
-            return move_randomly(self, board)
-        print("Choosing coord based on opponent placements.")
-        print("CO ORD CHOSEN: " + str(best_coord))
+        else:
+            if best_coord is None or best_coord == 0:
+                print("No best move. Choosing random coordinate...")
+                best_coord =  move_randomly(self, board)
+            elif not legalMove(board, best_coord):
+                print("Illegal move made. Choosing random coordinate...")
+                best_coord = move_randomly(self, board)
+            # print("Choosing coord based on opponent placements.")
+
+        print("Placing tile at: " + str(best_coord))
         return best_coord
 
 # Makes a random legal move.
 def move_randomly(self, board):
     while True:
         move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
+        print ("Move loc:", move_loc)
         if legalMove(board, move_loc):
-            print("Placing a tile at: " + str(move_loc))
             return move_loc
+
+
+# Returns centre tile coords if empty and None otherwise
+def check_centre(board):
+    size = len(board)
+    mid = size // 2
+
+    mid_tile = (mid, mid)
+
+    if (legalMove(board, mid_tile)):
+        return mid_tile
 
 # TODO this is semi functioning, it needs to start checking for a 0 in the return space 
 def choose_loc(open_threes, open_fours, split_threes, split_fours, board):
