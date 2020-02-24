@@ -26,18 +26,23 @@ class Player(GomokuAgent):
     def move(self, board):
         global opponent_id
         global player_id
+
+        # Player and opponent ID assignment
         if player_id == 0:
             player_id = self.ID
         if opponent_id == 0:
             opponent_id = get_opponent_id(board)
-            print("opponent id is: " + str(opponent_id))
+            print("Opponent ID: " + str(opponent_id))
+            
         opponent_tiles = get_opponent_tiles(board, opponent_id)
         opponent_tiles.sort()
         split_threes = look_for_lines(board, opponent_tiles, 4, 4, True)
         split_fours = look_for_lines(board, opponent_tiles, 5, 5, True)
         open_threes = look_for_lines(board, opponent_tiles, 3, 3, False)
         open_fours = look_for_lines(board, opponent_tiles, 4, 4, False)
+
         best_coord = choose_loc(open_threes, open_fours, split_threes, split_fours, board)
+
         if best_coord is None or best_coord == 0:
             print("Choosing coord randomly.")
             return move_randomly(self, board)
@@ -164,7 +169,7 @@ def get_player_tiles(board, player_id):
 
 
 # Returns the co-ordinates of all empty  tiles
-def get_player_tiles(board):
+def get_empty_tiles(board):
     coords = []
     for i in range(len(board)):
         for j in range(len(board[i])):
