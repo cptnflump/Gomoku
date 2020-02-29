@@ -84,7 +84,7 @@ def main():
             print(board)
             # REMOVE BEFORE FINAL SUBMISSION
             print("")
-            #input("press any key to continue...")
+            # input("press any key to continue...")
             print("")
             # REMOVE BEFORE FINAL SUBMISSION
             if id != 0:
