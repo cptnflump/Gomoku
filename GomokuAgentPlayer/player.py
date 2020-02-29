@@ -1,7 +1,7 @@
 # Imports
 import numpy as np
 from copy import copy, deepcopy
-
+import math
 from misc import legalMove, rowTest, diagTest, winningTest
 from gomokuAgent import GomokuAgent
 
@@ -353,7 +353,7 @@ def get_best_move(board, given_id):
 
 
 # The player will always be the one maximising
-def minimax(board, depth, given_id, alpha=-99999, beta=99999, curr_child=None):
+def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=None):
     board_copy = deepcopy(board)
     other_id = given_id * -1
 
@@ -361,11 +361,12 @@ def minimax(board, depth, given_id, alpha=-99999, beta=99999, curr_child=None):
         return curr_child
 
     # Children are in the format [SCORE, CO-ORD]
-    children = get_best_moves(board, given_id, 3)
+    children = get_best_moves(board, given_id, 2)
+    children += get_best_moves(board, other_id, 2)
 
     # Maximising player
     if given_id == player_id:
-        max_eval = -99999
+        max_eval = -math.inf
         max_child = None
         for child in children:
             y_coord = child[1][0]
@@ -382,7 +383,7 @@ def minimax(board, depth, given_id, alpha=-99999, beta=99999, curr_child=None):
                 break
         return max_child
     else:
-        min_eval = 99999
+        min_eval = math.inf
         min_child = None
         for child in children:
             y_coord = child[1][0]
