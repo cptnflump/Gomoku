@@ -44,7 +44,7 @@ class Player(GomokuAgent):
 
         print ("Board score: {}".format(get_board_score(board, player_id)))
 
-        player_best_move = minimax(board, 5, player_id)[1]
+        player_best_move = minimax(board, 10, player_id)[1]
         print("Player best move: {}".format(player_best_move))
 
         return player_best_move
@@ -364,7 +364,7 @@ def get_best_move(board, given_id):
 
 
 # The player will always be the one maximising
-def minimax(board, depth, given_id, curr_child=None):
+def minimax(board, depth, given_id, alpha=-99999, beta=99999, curr_child=None):
     board_copy = deepcopy(board)
     other_id = given_id * -1
 
@@ -382,12 +382,15 @@ def minimax(board, depth, given_id, curr_child=None):
             y_coord = child[1][0]
             x_coord = child[1][1]
             board_copy[y_coord][x_coord] = given_id
-            evaluation = minimax(board_copy, depth-1, other_id, child)
+            evaluation = minimax(board_copy, depth-1, other_id, alpha, beta, child)
             if isinstance(evaluation, int):
                 evaluation = [evaluation]
             if evaluation[0] > max_eval:
                 max_eval = evaluation[0]
                 max_child = child
+            alpha = max(alpha, evaluation[0])
+            if beta <= alpha:
+                break
         return max_child
     else:
         min_eval = 99999
@@ -396,12 +399,15 @@ def minimax(board, depth, given_id, curr_child=None):
             y_coord = child[1][0]
             x_coord = child[1][1]
             board_copy[y_coord][x_coord] = given_id
-            evaluation = minimax(board_copy, depth - 1, other_id, child)
+            evaluation = minimax(board_copy, depth - 1, other_id, alpha, beta, child)
             if isinstance(evaluation, int):
                 evaluation = [evaluation]
             if evaluation[0] < min_eval:
                 min_eval = evaluation[0]
                 min_child = child
+            beta = min(beta, evaluation[0])
+            if beta <= alpha:
+                break
         return min_child
 
         
