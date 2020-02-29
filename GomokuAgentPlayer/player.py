@@ -44,21 +44,12 @@ class Player(GomokuAgent):
 
         print ("Board score: {}".format(get_board_score(board, player_id)))
 
-        best_moves = get_best_moves(board, player_id, 2)
-        max_one, coord_one = minimax(board, best_moves[0], 3, player_id)
-        max_two, coord_two = minimax(board, best_moves[1], 3, player_id)
-        print("MAX ONE", max_one)
-        print("COORD_ONE", coord_one)
-        print("MAX TWO", max_two)
-        print("COORD_TWO", coord_two)
+        player_best_move = minimax(board, 5, player_id)[1]
+        print("Player best move: {}".format(player_best_move))
 
-        player_best_move = max(max_one,max_two)
-        print (player_best_move)
+        return player_best_move
 
-        if (max_one == player_best_move):
-            best_coord = coord_one
-        else:
-            best_coord = coord_two
+
 
         
        
@@ -72,10 +63,9 @@ class Player(GomokuAgent):
         #else:
         #    best_coord = opponent_best_move[1]
 
-        print("Placing tile at: " + str(best_coord))
+        # print("Placing tile at: " + str(best_coord))
         
-        return best_coord
-
+        # return best_coord
 
 # Makes a random legal move.
 def move_randomly(self, board):
@@ -125,7 +115,7 @@ def get_player_tiles(board, given_id):
             if (board[i][j] == given_id):
                 coords = (i, j)
                 given_id_tile = get_tile(board, coords)
-                given_id_tiles.append(player_tile)
+                given_id_tiles.append(given_id_tile)
 
     print ("Here are the tiles that belong to player_id={}:".format(player_id))
     print (given_id_tiles)
@@ -344,7 +334,7 @@ def get_best_moves(board, given_id, amount):
 
         i += 1
 
-    print (best_moves)
+    #print (best_moves)
 
     return (best_moves)
 
@@ -373,16 +363,47 @@ def get_best_move(board, given_id):
     return best_move
 
 
-#
-def minimax(board, depth, given_id):
-    other_id = given_id * - 1
-    
-    if ((depth == 0) or (winningTest(given_id, board, 5)):
-        return "winning condition"
+# The player will always be the one maximising
+def minimax(board, depth, given_id, curr_child=None):
+    board_copy = deepcopy(board)
+    other_id = given_id * -1
 
-    children = get_best_moves(board, given_id, 2)
-    if (given_id == 1):
-        max_eval= -99999
+    if depth == 0 or winningTest(given_id, board, 5):
+        return curr_child
+
+    # Children are in the format [SCORE, CO-ORD]
+    children = get_best_moves(board, given_id, 3)
+
+    # Maximising player
+    if given_id == player_id:
+        max_eval = -99999
+        max_child = None
+        for child in children:
+            y_coord = child[1][0]
+            x_coord = child[1][1]
+            board_copy[y_coord][x_coord] = given_id
+            evaluation = minimax(board_copy, depth-1, other_id, child)
+            if isinstance(evaluation, int):
+                evaluation = [evaluation]
+            if evaluation[0] > max_eval:
+                max_eval = evaluation[0]
+                max_child = child
+        return max_child
+    else:
+        min_eval = 99999
+        min_child = None
+        for child in children:
+            y_coord = child[1][0]
+            x_coord = child[1][1]
+            board_copy[y_coord][x_coord] = given_id
+            evaluation = minimax(board_copy, depth - 1, other_id, child)
+            if isinstance(evaluation, int):
+                evaluation = [evaluation]
+            if evaluation[0] < min_eval:
+                min_eval = evaluation[0]
+                min_child = child
+        return min_child
+
         
     
         
