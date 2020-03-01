@@ -50,7 +50,7 @@ class Player(GomokuAgent):
 
         best_move = None
 
-        player_best_move = minimax(board, 3, player_id)[1]
+        player_best_move = minimax(board, 1, player_id)[1]
         print("Player best move: {}".format(player_best_move))
 
         return player_best_move
@@ -385,7 +385,10 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
     board_copy = deepcopy(board)
     other_id = given_id * -1
 
+    #print ("Current child:", curr_child)
     if depth == 0 or winningTest(given_id, board, 5):
+        #print ("Final child:", curr_child)
+        #print (curr_child)
         return curr_child
 
     # Children are in the format [SCORE, CO-ORD]
@@ -393,6 +396,7 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
     for child in children:
         child[0] = (child[0] * 2) + 1
     children += get_best_moves(board, other_id, 2)
+    #print (children)
     #print("Best moves for {}: {}\nBest moves for {}: {}".format(
         #given_id,
         #children[0:2],
@@ -408,7 +412,8 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
             x_coord = child[1][1]
             board_copy[y_coord][x_coord] = given_id
             evaluation = minimax(board_copy, depth-1, other_id, alpha, beta, child)
-            if isinstance(evaluation, int):
+            #print ("max evaluation:", evaluation)
+            if isinstance(evaluation, int) or isinstance(evaluation, float):
                 evaluation = [evaluation]
             if evaluation[0] > max_eval:
                 max_eval = evaluation[0]
@@ -416,6 +421,8 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
             alpha = max(alpha, evaluation[0])
             if beta <= alpha:
                 break
+
+        #print ("Max child:", max_child)
         return max_child
     else:
         min_eval = math.inf
@@ -425,12 +432,15 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
             x_coord = child[1][1]
             board_copy[y_coord][x_coord] = given_id
             evaluation = minimax(board_copy, depth - 1, other_id, alpha, beta, child)
-            if isinstance(evaluation, int):
+            # print("min evaluation:", evaluation)
+            if isinstance(evaluation, int)  or isinstance(evaluation, float):
                 evaluation = [evaluation]
-            if evaluation[0] < min_eval:
+            if evaluation[0] <= min_eval:
                 min_eval = evaluation[0]
                 min_child = child
             beta = min(beta, evaluation[0])
             if beta <= alpha:
                 break
+
+        # print("Min child:", min_child)
         return min_child
