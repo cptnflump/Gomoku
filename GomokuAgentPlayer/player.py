@@ -50,11 +50,16 @@ class Player(GomokuAgent):
 
         best_move = None
 
-        #print ("Board score: {}".format(get_board_score(board)))
+        player_best_move = minimax(board, 5, player_id)[1]
+        print("Player best move: {}".format(player_best_move))
 
-        #best_moves = get_best_moves(board, player_id, 2)
+        return player_best_move
 
-        player_best_move = get_best_move(board, player_id)
+
+
+        
+       
+        #opponent_best_move = get_best_move(board, opponent_id)
 
         #get_best_moves(board, player_id, 2)
 
@@ -64,12 +69,9 @@ class Player(GomokuAgent):
         #else:
         #    best_coord = opponent_best_move[1]
 
-        best_coord = player_best_move[1]
-
-        print("Placing tile at: " + str(best_coord))
+        # print("Placing tile at: " + str(best_coord))
         
-        return best_coord
-
+        # return best_coord
 
 # Makes a random legal move.
 def move_randomly(self, board):
@@ -119,7 +121,7 @@ def get_player_tiles(board, given_id):
             if (board[i][j] == given_id):
                 coords = (i, j)
                 given_id_tile = get_tile(board, coords)
-                given_id_tiles.append(player_tile)
+                given_id_tiles.append(given_id_tile)
 
     print ("Here are the tiles that belong to player_id={}:".format(given_id))
     print (given_id_tiles)
@@ -296,10 +298,9 @@ def get_row_score(row, given_id):
 # TODO: Change so it predicted new value of tile
 # Return score of tile
 def get_tile_score(board, given_id, coords):
-    other_id = given_id * -1
     copyboard = deepcopy(board)
     total_score = 0
-
+    
     tile = get_tile(board, coords)
     value = tile[0]
     i, j = tile[1]
@@ -314,15 +315,11 @@ def get_tile_score(board, given_id, coords):
         row = star[x]
 
         row_score = get_row_score(row, given_id)
-        
+
         total_score += row_score
         
-
-
     #print ("Score for {} for player_id={}: {}".format(
     #    coords, player_id, total_score))
-
-    #print ("{}: Score: {}".format(coords, total_score))
 
     return [total_score, coords]
 
@@ -341,6 +338,32 @@ def get_tile_scores(board, given_id):
     return tiles
 
 
+# TODO: Implement queue of tile scores -> create for-loop with amount as range -> add best move to list of best moves -> pop queue -> repeat
+def get_best_moves(board, given_id, amount):
+    best_moves = []
+    
+    other_id = given_id * -1
+    
+    given_id_moves = get_tile_scores(board, given_id)
+    other_id_moves = get_tile_scores(board, other_id)
+
+    all_moves = given_id_moves + other_id_moves
+
+    all_moves = sorted(all_moves, key=lambda k: k[0], reverse=True)
+
+    i = 0 
+    while (len(best_moves) < amount):
+        best_move = all_moves[i]
+
+        if (legalMove(board, best_move[1])):
+            best_moves.append(best_move)
+
+        i += 1
+
+    #print (best_moves)
+
+    return (best_moves)
+
 # Analyse player
 def get_best_move(board, given_id):
     other_id = given_id * -1
@@ -349,7 +372,7 @@ def get_best_move(board, given_id):
     given_tile_scores = get_tile_scores(board, given_id)
     other_tile_scores = get_tile_scores(board, other_id)
 
-    
+
 
     # tiles = get_tile_scores(board, given_id)
 
@@ -366,18 +389,58 @@ def get_best_move(board, given_id):
         best_move = best_given_move
     else:
         best_move = best_other_move
-    
+
     return best_move
 
 
+# The player will always be the one maximising
+def minimax(board, depth, given_id, curr_child=None):
+    board_copy = deepcopy(board)
+    other_id = given_id * -1
+
+    if depth == 0 or winningTest(given_id, board, 5):
+        return curr_child
+
+    # Children are in the format [SCORE, CO-ORD]
+    children = get_best_moves(board, given_id, 3)
+
+    # Maximising player
+    if given_id == player_id:
+        max_eval = -99999
+        max_child = None
+        for child in children:
+            y_coord = child[1][0]
+            x_coord = child[1][1]
+            board_copy[y_coord][x_coord] = given_id
+            evaluation = minimax(board_copy, depth-1, other_id, child)
+            if isinstance(evaluation, int):
+                evaluation = [evaluation]
+            if evaluation[0] > max_eval:
+                max_eval = evaluation[0]
+                max_child = child
+        return max_child
+    else:
+        min_eval = 99999
+        min_child = None
+        for child in children:
+            y_coord = child[1][0]
+            x_coord = child[1][1]
+            board_copy[y_coord][x_coord] = given_id
+            evaluation = minimax(board_copy, depth - 1, other_id, child)
+            if isinstance(evaluation, int):
+                evaluation = [evaluation]
+            if evaluation[0] < min_eval:
+                min_eval = evaluation[0]
+                min_child = child
+        return min_child
+
+        
+    
+        
+
+    
 
 
 
 
-
-
-
-
-
-
-
+        
