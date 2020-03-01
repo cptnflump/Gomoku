@@ -316,32 +316,6 @@ def get_tile_score(board, given_id, coords):
 
         row_score = get_row_score(row, given_id)
         
-        
-        """
-        row_score = 0
-        consec = 0
-        for y in range(len(row)):
-            tile = row[y]
-            tile_score = 0
-
-            if tile[0] == given_id:
-                consec += 1
-                tile_score = int(1 * math.pow(10, consec))
-            elif tile[0] == EMPTY or tile[0] == other_id:
-                consec = 0 
-
-            if (tile[1] == coords):
-                consec += 1
-            else:
-                if (tile[0] == EMPTY):
-                    consec = 0
-                    row_score += 1
-                elif (tile[0] == given_id):
-                    consec += 1
-                    tile_score = int(1 * math.pow(10, consec))
-                    row_score += tile_score
-                    """
-
         total_score += row_score
         
 
