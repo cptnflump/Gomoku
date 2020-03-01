@@ -280,16 +280,15 @@ def get_row_score(row, given_id):
     row_score = 0
     consec = 0
     for tile in row:
-        
         if tile[0] == given_id:
             consec += 1
         if tile[0] != given_id and consec > 0:
-            row_score += int(math.pow(10, consec))
+            row_score += int(math.pow(10, consec)) - 1
             consec = 0
         elif tile[0] == EMPTY:
             row_score += 1
 
-    print ("{} to {}; Score: {}".format(row[0], row[-1], row_score))
+    #print ("{} to {}; Score: {}".format(row[0], row[-1], row_score))
 
     return row_score
 
@@ -323,6 +322,7 @@ def get_tile_score(board, given_id, coords):
     #print ("Score for {} for player_id={}: {}".format(
     #    coords, player_id, total_score))
 
+    #print ("{}: Score: {}".format(coords, total_score))
 
     return [total_score, coords]
 
