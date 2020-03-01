@@ -269,20 +269,27 @@ def row_possible(row, given_id):
     return max_row_size >= 5
 
 
-#
+# [0, (4, 2)] to [0, (4, 10)]; Score: 8
 def get_row_score(row, given_id):
     other_id = given_id * -1
-
     row_score = 0
     consec = 0
     for tile in row:
         if tile[0] == given_id:
             consec += 1
-        if tile[0] != given_id and consec > 0:
-            row_score += int(math.pow(10, consec)) - 1
+        if consec > 4:
+            row_score = math.inf
+        elif tile[0] != given_id:
+            if consec > 4:
+                row_score = math.inf
+            elif tile[0] == other_id:
+                pass
+            elif consec > 0:
+                row_score += int(math.pow(10, consec))
+            elif tile[0] == EMPTY:
+                row_score += 1
             consec = 0
-        elif tile[0] == EMPTY:
-            row_score += 1
+
 
     #print ("{} to {}; Score: {}".format(row[0], row[-1], row_score))
 
@@ -327,6 +334,8 @@ def get_tile_scores(board, given_id):
         tiles.append(tile)
 
     tiles = sorted(tiles, key=lambda k: k[0], reverse=True)
+
+    #print (tiles)
     
     return tiles
 
@@ -334,26 +343,12 @@ def get_tile_scores(board, given_id):
 # TODO: Implement queue of tile scores -> create for-loop with amount as range -> add best move to list of best moves -> pop queue -> repeat
 def get_best_moves(board, given_id, amount):
     best_moves = []
-    
-    other_id = given_id * -1
-    
-    given_id_moves = get_tile_scores(board, given_id)
-    other_id_moves = get_tile_scores(board, other_id)
 
-    all_moves = given_id_moves + other_id_moves
+    all_best_moves = get_tile_scores(board, given_id)
 
-    all_moves = sorted(all_moves, key=lambda k: k[0], reverse=True)
-
-    i = 0 
-    while len(best_moves) < amount:
-        best_move = all_moves[i]
-
-        if legalMove(board, best_move[1]):
-            best_moves.append(best_move)
-
-        i += 1
-
-    # print (best_moves)
+    for i in range(amount):
+        best_move = all_best_moves.pop(i)
+        best_moves.append(best_move)
 
     return best_moves
 
@@ -395,7 +390,14 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
 
     # Children are in the format [SCORE, CO-ORD]
     children = get_best_moves(board, given_id, 2)
+    for child in children:
+        child[0] = (child[0] * 2) + 1
     children += get_best_moves(board, other_id, 2)
+    #print("Best moves for {}: {}\nBest moves for {}: {}".format(
+        #given_id,
+        #children[0:2],
+        #other_id,
+        #children[2:]))
 
     # Maximising player
     if given_id == player_id:
