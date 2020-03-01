@@ -1,4 +1,5 @@
 # Imports
+import math
 import numpy as np
 from copy import copy, deepcopy
 
@@ -9,6 +10,7 @@ from gomokuAgent import GomokuAgent
 opponent_id = 0
 player_id = 0
 priority_moves_queue = []
+move_count = 0
 
 # Constants
 N = "NORTH"
@@ -25,6 +27,8 @@ V = "VERTICAL"
 LD = "LEFT-DIAGONAL"
 RD = "RIGHT-DIAGONAL"
 
+EMPTY = 0
+
 
 # Player Class
 class Player(GomokuAgent):
@@ -32,6 +36,7 @@ class Player(GomokuAgent):
     def move(self, board):
         global opponent_id
         global player_id
+        global move_count
 
         # Player and opponent ID assignment
         if player_id == 0:
@@ -40,29 +45,16 @@ class Player(GomokuAgent):
             opponent_id = get_opponent_id(board)
             print("Opponent ID: " + str(opponent_id))
 
+        move_count += 1
+        print ("Move #{}".format(move_count))
+
         best_move = None
 
-        print ("Board score: {}".format(get_board_score(board, player_id)))
+        #print ("Board score: {}".format(get_board_score(board)))
 
-        best_moves = get_best_moves(board, player_id, 2)
-        max_one, coord_one = minimax(board, best_moves[0], 3, player_id)
-        max_two, coord_two = minimax(board, best_moves[1], 3, player_id)
-        print("MAX ONE", max_one)
-        print("COORD_ONE", coord_one)
-        print("MAX TWO", max_two)
-        print("COORD_TWO", coord_two)
+        #best_moves = get_best_moves(board, player_id, 2)
 
-        player_best_move = max(max_one,max_two)
-        print (player_best_move)
-
-        if (max_one == player_best_move):
-            best_coord = coord_one
-        else:
-            best_coord = coord_two
-
-        
-       
-        #opponent_best_move = get_best_move(board, opponent_id)
+        player_best_move = get_best_move(board, player_id)
 
         #get_best_moves(board, player_id, 2)
 
@@ -71,6 +63,8 @@ class Player(GomokuAgent):
         #    best_coord = player_best_move[1]
         #else:
         #    best_coord = opponent_best_move[1]
+
+        best_coord = player_best_move[1]
 
         print("Placing tile at: " + str(best_coord))
         
@@ -127,11 +121,22 @@ def get_player_tiles(board, given_id):
                 given_id_tile = get_tile(board, coords)
                 given_id_tiles.append(player_tile)
 
-    print ("Here are the tiles that belong to player_id={}:".format(player_id))
+    print ("Here are the tiles that belong to player_id={}:".format(given_id))
     print (given_id_tiles)
     print ()
 
     return given_id_tiles
+
+
+# Returns all the coordinates from the board that are empty
+def get_empty_coords(board):
+    coords = []
+    for i in range(len(board)):
+        for j in range(len(board)):
+            tile = get_tile(board, (i, j))
+            if (tile[0] == EMPTY):
+                coords.append(tile[1])
+    return coords
 
 
 # Get value and coordinates of a tile
@@ -229,9 +234,14 @@ def get_row(board, coords, direction):
 
     row = [left_end, left_m2, left_m1, left_start,
            tile,
-           right_start, right_m1, right_m2, right_end]  
+           right_start, right_m1, right_m2, right_end]
+
+    final_row = []
+    for i in range(len(row)):
+        if row[i] != [None, None]:
+            final_row.append(row[i])
     
-    return row
+    return final_row
 
 
 # Get the star around 
@@ -246,150 +256,154 @@ def get_star(board, coords):
     return star
 
 
+#
+def row_possible(row, given_id):
+    max_row_size = 0
+    count = 0
+
+    for tile in row:
+        value = tile[0]
+        if value == EMPTY or value == given_id:
+            count += 1
+        else:
+            if count > max_row_size:
+                max_row_size = count
+            count = 0
+
+    return max_row_size >= 5
+
+
+#
+def get_row_score(row, given_id):
+    other_id = given_id * -1
+
+    row_score = 0
+    consec = 0
+    for tile in row:
+        
+        if tile[0] == given_id:
+            consec += 1
+        if tile[0] != given_id and consec > 0:
+            row_score += int(math.pow(10, consec))
+            consec = 0
+        elif tile[0] == EMPTY:
+            row_score += 1
+
+    print ("{} to {}; Score: {}".format(row[0], row[-1], row_score))
+
+    return row_score
+
+
+# TODO: Change so it predicted new value of tile
 # Return score of tile
 def get_tile_score(board, given_id, coords):
+    other_id = given_id * -1
     copyboard = deepcopy(board)
     total_score = 0
-    
+
     tile = get_tile(board, coords)
     value = tile[0]
-    i, j = tile[1][0], tile[1][1]
+    i, j = tile[1]
 
-    if (value == 0):
+    if (value == EMPTY):
         copyboard[i][j] = given_id
+    else:
+        return [0, coords]
 
     star = get_star(copyboard, coords)
     for x in range(len(star)):
-        row_score = 0
-    
         row = star[x]
-        tile_score = 0
+
+        row_score = get_row_score(row, given_id)
+        
+        
+        """
+        row_score = 0
         consec = 0
-        blocker = False
         for y in range(len(row)):
             tile = row[y]
+            tile_score = 0
 
-            if (blocker == False):
-                if (tile[0] == 0):
+            if tile[0] == given_id:
+                consec += 1
+                tile_score = int(1 * math.pow(10, consec))
+            elif tile[0] == EMPTY or tile[0] == other_id:
+                consec = 0 
+
+            if (tile[1] == coords):
+                consec += 1
+            else:
+                if (tile[0] == EMPTY):
                     consec = 0
+                    row_score += 1
                 elif (tile[0] == given_id):
                     consec += 1
-                    tile_score = (int("1" * consec))
+                    tile_score = int(1 * math.pow(10, consec))
                     row_score += tile_score
-                elif (tile[0] == opponent_id):
-                    blocker = True
-                    consec = 0
+                    """
 
         total_score += row_score
         
+
+
     #print ("Score for {} for player_id={}: {}".format(
     #    coords, player_id, total_score))
+
 
     return [total_score, coords]
 
 
 #
-def get_board_score(board, given_id):
-    board_score = 0
-    other_id = given_id * -1
-    
-    board_coords = get_all_coords(board)
-    given_id_score = 0
-    other_id_score = 0
-    
-    for coords in board_coords:
-        given_id_score = get_tile_score(board, given_id, coords)[0]
-        other_id_score = get_tile_score(board, other_id, coords)[0] * -1
-        tile_score = given_id_score + other_id_score
-        board_score += tile_score
-
-    print("Current player: {}, Opponent: {}".format(given_id, other_id))
-    return board_score
-
-
-#
 def get_tile_scores(board, given_id):
     tiles = []
-    board_coords = get_all_coords(board)
+    empty_coords = get_empty_coords(board)
 
-    for coords in board_coords:
-        if (legalMove(board, coords)):
-            tile = get_tile_score(board, given_id, coords)
-            tiles.append(tile)
-        
+    for coords in empty_coords:
+        tile = get_tile_score(board, given_id, coords)
+        tiles.append(tile)
+
     tiles = sorted(tiles, key=lambda k: k[0], reverse=True)
     
     return tiles
 
 
-#
-def get_best_moves(board, given_id, amount):
-    best_moves = []
-    
-    other_id = given_id * -1
-    
-    given_id_moves = get_tile_scores(board, given_id)
-    other_id_moves = get_tile_scores(board, other_id)
-
-    all_moves = given_id_moves + other_id_moves
-
-    all_moves = sorted(all_moves, key=lambda k: k[0], reverse=True)
-
-    i = 0 
-    while (len(best_moves) < amount):
-        best_move = all_moves[i]
-
-        if (legalMove(board, best_move[1])):
-            best_moves.append(best_move)
-
-        i += 1
-
-    print (best_moves)
-
-    return (best_moves)
-
 # Analyse player
 def get_best_move(board, given_id):
+    other_id = given_id * -1
     best_move = None
 
-    if (check_centre(board) is not None):
-        best_coords = check_centre(board)
-        best_move = 11111, best_coords
-        
+    given_tile_scores = get_tile_scores(board, given_id)
+    other_tile_scores = get_tile_scores(board, other_id)
+
+    
+
+    # tiles = get_tile_scores(board, given_id)
+
+    best_given_move = given_tile_scores[0]
+    best_other_move = other_tile_scores[0]
+
+    print ("Best move for {}: {}\nBest move for {}: {}".format(
+        given_id,
+        best_given_move,
+        other_id,
+        best_other_move))
+
+    if best_given_move > best_other_move:
+        best_move = best_given_move
     else:
-        tiles = get_tile_scores(board, given_id)
-        
-        best_move_index = 0
-        while True:
-            best_move = tiles[best_move_index]
-            tile_score = best_move[0]
-            coords = best_move[1]
-
-            if (legalMove(board, coords)):
-                break
-
-            best_move_index += 1
-
+        best_move = best_other_move
+    
     return best_move
 
 
-#
-def minimax(board, depth, given_id):
-    other_id = given_id * - 1
-    
-    if ((depth == 0) or (winningTest(given_id, board, 5)):
-        return "winning condition"
-
-    children = get_best_moves(board, given_id, 2)
-    if (given_id == 1):
-        max_eval= -99999
-        
-    
-        
-
-    
 
 
 
 
-        
+
+
+
+
+
+
+
