@@ -2,7 +2,7 @@
 import math
 import numpy as np
 from copy import copy, deepcopy
-
+import math
 from misc import legalMove, rowTest, diagTest, winningTest
 from gomokuAgent import GomokuAgent
 
@@ -50,28 +50,25 @@ class Player(GomokuAgent):
 
         best_move = None
 
-        player_best_move = minimax(board, 5, player_id)[1]
+        player_best_move = minimax(board, 3, player_id)[1]
         print("Player best move: {}".format(player_best_move))
 
         return player_best_move
 
+        # opponent_best_move = get_best_move(board, opponent_id)
 
-
-        
-       
-        #opponent_best_move = get_best_move(board, opponent_id)
-
-        #get_best_moves(board, player_id, 2)
+        # get_best_moves(board, player_id, 2)
 
         # Note: attack vs def. if second player to move, value block first
-        #if (player_best_move[0] >= opponent_best_move[0]):
+        # if (player_best_move[0] >= opponent_best_move[0]):
         #    best_coord = player_best_move[1]
-        #else:
+        # else:
         #    best_coord = opponent_best_move[1]
 
         # print("Placing tile at: " + str(best_coord))
         
         # return best_coord
+
 
 # Makes a random legal move.
 def move_randomly(self, board):
@@ -95,10 +92,10 @@ def check_centre(board):
 def get_opponent_id(board):
     for row in board:
         for tile in row:
-            if (tile != player_id and tile != 0):
+            if tile != player_id and tile != 0:
                 return tile
 
-    return (player_id * -1)
+    return player_id * -1
 
 
 # Returns all the coordinates from the board
@@ -118,7 +115,7 @@ def get_player_tiles(board, given_id):
     
     for i in range(n):
         for j in range(n):
-            if (board[i][j] == given_id):
+            if board[i][j] == given_id:
                 coords = (i, j)
                 given_id_tile = get_tile(board, coords)
                 given_id_tiles.append(given_id_tile)
@@ -128,7 +125,6 @@ def get_player_tiles(board, given_id):
     print ()
 
     return given_id_tiles
-
 
 # Returns all the coordinates from the board that are empty
 def get_empty_coords(board):
@@ -146,7 +142,7 @@ def get_tile(board, coords):
     size = len(board)
     i, j = coords[0], coords[1]
     # print ("The value at {} is {}.\n".format(coords, value))
-    if (0 <= i < size and 0 <= j < size):
+    if 0 <= i < size and 0 <= j < size:
         value = board[i][j]
         tile = [value, coords]
         return tile
@@ -158,39 +154,39 @@ def get_tile(board, coords):
 def look(board, coords, direction):
     tile = [None, None]
     
-    if (coords is not None):
+    if coords is not None:
         i, j = coords[0], coords[1]
 
         # North
-        if (direction == N):
+        if direction == N:
             tile = get_tile(board, (i - 1, j))
         # North-east
-        elif (direction == NE):
+        elif direction == NE:
             tile = get_tile(board, (i - 1, j + 1))
         # East
-        elif (direction == E):
+        elif direction == E:
             tile = get_tile(board, (i, j + 1))
         # South-east
-        elif (direction == SE):
+        elif direction == SE:
             tile = get_tile(board, (i + 1, j + 1))
         # South
-        elif (direction == S):
+        elif direction == S:
             tile = get_tile(board, (i + 1, j))
         # South-west
-        elif (direction == SW):
+        elif direction == SW:
             tile = get_tile(board, (i + 1, j - 1))
         # West
-        elif (direction == W):
+        elif direction == W:
             tile = get_tile(board, (i, j - 1))
         # North-west
-        elif (direction == NW):
+        elif direction == NW:
             tile = get_tile(board, (i - 1, j - 1))
 
         # Info
-        #if (tile[1] is not None):
+        # if (tile[1] is not None):
         #    print ("The tile {} of {} is {}.".format(
         #        direction.lower(), coords, tile))
-        #else:
+        # else:
         #    print ("There is no tile {} of {}.".format(
         #        direction.lower(), coords))
 
@@ -199,40 +195,38 @@ def look(board, coords, direction):
 
 # Check 9-long row of tiles
 def get_row(board, coords, direction):
-    row = []
     directions = []
     
     tile = get_tile(board, coords)
-    value = tile[0]
 
     # Horizontal
-    if (direction == H):
+    if direction == H:
         directions.append(W)
         directions.append(E)
     # Vertical
-    elif (direction == V):
+    elif direction == V:
         directions.append(N)
         directions.append(S)
     # Left-diagonal
-    elif (direction == LD):
+    elif direction == LD:
         directions.append(NW)
         directions.append(SE)
     # Right-diagonal
-    elif (direction == RD):
+    elif direction == RD:
         directions.append(NE)
         directions.append(SW)
         
     left_start, right_start = (look(board, coords, directions[0]),
-                     look(board, coords, directions[1]))
+                               look(board, coords, directions[1]))
     
     left_m1, right_m1 = (look(board, left_start[1], directions[0]),
-                     look(board, right_start[1], directions[1]))
+                         look(board, right_start[1], directions[1]))
     
     left_m2, right_m2 = (look(board, left_m1[1], directions[0]),
-                     look(board, right_m1[1], directions[1]))
+                         look(board, right_m1[1], directions[1]))
     
     left_end, right_end = (look(board, left_m2[1], directions[0]),
-                     look(board, right_m2[1], directions[1]))
+                           look(board, right_m2[1], directions[1]))
 
     row = [left_end, left_m2, left_m1, left_start,
            tile,
@@ -306,6 +300,7 @@ def get_tile_score(board, given_id, coords):
     i, j = tile[1]
 
     if (value == EMPTY):
+
         copyboard[i][j] = given_id
     else:
         return [0, coords]
@@ -318,13 +313,11 @@ def get_tile_score(board, given_id, coords):
 
         total_score += row_score
         
-    #print ("Score for {} for player_id={}: {}".format(
+    # print ("Score for {} for player_id={}: {}".format(
     #    coords, player_id, total_score))
 
     return [total_score, coords]
 
-
-#
 def get_tile_scores(board, given_id):
     tiles = []
     empty_coords = get_empty_coords(board)
@@ -352,17 +345,18 @@ def get_best_moves(board, given_id, amount):
     all_moves = sorted(all_moves, key=lambda k: k[0], reverse=True)
 
     i = 0 
-    while (len(best_moves) < amount):
+    while len(best_moves) < amount:
         best_move = all_moves[i]
 
-        if (legalMove(board, best_move[1])):
+        if legalMove(board, best_move[1]):
             best_moves.append(best_move)
 
         i += 1
 
-    #print (best_moves)
+    # print (best_moves)
 
-    return (best_moves)
+    return best_moves
+
 
 # Analyse player
 def get_best_move(board, given_id):
@@ -371,8 +365,6 @@ def get_best_move(board, given_id):
 
     given_tile_scores = get_tile_scores(board, given_id)
     other_tile_scores = get_tile_scores(board, other_id)
-
-
 
     # tiles = get_tile_scores(board, given_id)
 
@@ -394,7 +386,7 @@ def get_best_move(board, given_id):
 
 
 # The player will always be the one maximising
-def minimax(board, depth, given_id, curr_child=None):
+def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=None):
     board_copy = deepcopy(board)
     other_id = given_id * -1
 
@@ -402,45 +394,41 @@ def minimax(board, depth, given_id, curr_child=None):
         return curr_child
 
     # Children are in the format [SCORE, CO-ORD]
-    children = get_best_moves(board, given_id, 3)
+    children = get_best_moves(board, given_id, 2)
+    children += get_best_moves(board, other_id, 2)
 
     # Maximising player
     if given_id == player_id:
-        max_eval = -99999
+        max_eval = -math.inf
         max_child = None
         for child in children:
             y_coord = child[1][0]
             x_coord = child[1][1]
             board_copy[y_coord][x_coord] = given_id
-            evaluation = minimax(board_copy, depth-1, other_id, child)
+            evaluation = minimax(board_copy, depth-1, other_id, alpha, beta, child)
             if isinstance(evaluation, int):
                 evaluation = [evaluation]
             if evaluation[0] > max_eval:
                 max_eval = evaluation[0]
                 max_child = child
+            alpha = max(alpha, evaluation[0])
+            if beta <= alpha:
+                break
         return max_child
     else:
-        min_eval = 99999
+        min_eval = math.inf
         min_child = None
         for child in children:
             y_coord = child[1][0]
             x_coord = child[1][1]
             board_copy[y_coord][x_coord] = given_id
-            evaluation = minimax(board_copy, depth - 1, other_id, child)
+            evaluation = minimax(board_copy, depth - 1, other_id, alpha, beta, child)
             if isinstance(evaluation, int):
                 evaluation = [evaluation]
             if evaluation[0] < min_eval:
                 min_eval = evaluation[0]
                 min_child = child
+            beta = min(beta, evaluation[0])
+            if beta <= alpha:
+                break
         return min_child
-
-        
-    
-        
-
-    
-
-
-
-
-        
