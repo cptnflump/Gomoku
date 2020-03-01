@@ -50,8 +50,12 @@ class Player(GomokuAgent):
 
         best_move = None
 
-        player_best_move = minimax(board, 1, player_id)[1]
-        print("Player best move: {}".format(player_best_move))
+        try:
+            player_best_move = minimax(board, 1, player_id)[1]
+            print("Player best move: {}".format(player_best_move))
+        except IndexError:
+            coords = get_empty_coords(board)
+            player_best_move = coords[0]
 
         return player_best_move
 

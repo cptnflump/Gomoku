@@ -1,10 +1,10 @@
 #######################################################
 # Gomoku Platform (single game)
-# Version 0.1
+# Version 0.3
 # 
-# Xiuyi Fan
+# Xiuyi Fan, Matt Bastiman, Edward Wall
 # Swansea University
-# Jan 2020
+# Feb 2020
 #
 
 import sys, time, signal
@@ -29,26 +29,35 @@ def handler(signum, frame):
     print("Player timeout")
     raise timeOutException()
 
+"""
+CHANGE:
+Added turn_id to the turn function to replace the player.ID calls
+This protects against ID spoofing
+"""
 # turn taking function
-def turn(board, player):
+def turn(board, player, turn_id):
+
+    # make a copy of the board, which is passed to the agent
+    tempBoard = np.array(board)
 
     # set the time out alarm and call player's move function
-    # signal.alarm(TIME_OUT)
+    signal.alarm(TIME_OUT)
     try:
-        moveLoc = player.move(board)
+        moveLoc = player.move(tempBoard)
     except timeOutException:        
-        return player.ID*-1, board
-    # signal.alarm(0)
+        return turn_id*-1, board
+    signal.alarm(0)
     
-    # test if the move is legal
+    # test if the move is legal - on the original board
     if legalMove(board, moveLoc):
-        board[moveLoc] = player.ID
+        board[moveLoc] = turn_id
     else:
-        return player.ID*-1, board
+        print("Player " + str(turn_id) + " illegal move at " + str(moveLoc))
+        return turn_id*-1, board
 
     # test if any player wins the game
-    if winningTest(player.ID, board, X_IN_A_LINE):
-        return player.ID, board
+    if winningTest(turn_id, board, X_IN_A_LINE):
+        return turn_id, board
 
     # move to the next turn
     return 0, board
@@ -73,31 +82,36 @@ def main():
     board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype=int)
 
     # connect the alarm signal with the handler
-    # signal.signal(signal.SIGALRM, handler)
+    signal.signal(signal.SIGALRM, handler)
     
     # play the game
     winner = 0
     while True:
         end = False
-        for player in [player1, player2]:
-            id, board = turn(board, player)            
+        """
+        CAHNGE:
+        Added turn_id to the loop, this keeps the turn id separate from the 
+        <GomokuAgent>.ID which is accessable and writeable from inside GomokuAgent
+        """
+        for player, turn_id in [(player1, 1), (player2, -1)]:
+            id, board = turn(board, player, turn_id)
             print(board)
-            # REMOVE BEFORE FINAL SUBMISSION
-            print("")
-            #input("press any key to continue...")
-            print("")
-            # REMOVE BEFORE FINAL SUBMISSION
+            """
+            CHANGE:
+            Move draw check to inside play loop. A draw will always be decided after player 1's turn and so
+            insisting player 2 must always make a move after player 1 will lead to a loss for player 2 where
+            a draw was possible
+            """
+            if not 0 in board:
+                print("Draw.")
+                end = True
+                break
             if id != 0:
                 print("Winner: " + str(id))
                 end = True
                 break
-
         if end:
-            break
-
-        if not 0 in board:
-            print("Draw.")
-            break
+            break        
 
 if __name__ == '__main__':
     sys.exit(main());
