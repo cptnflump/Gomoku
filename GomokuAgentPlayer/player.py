@@ -37,7 +37,6 @@ RD = "RIGHT-DIAGONAL"
 
 EMPTY = 0
 
-
 # Player Class
 class Player(GomokuAgent):
     # Makes a legal player move depending on the opponents current tiles, and the 'best' move to make.
@@ -48,10 +47,10 @@ class Player(GomokuAgent):
         global move_count
 
         # Player and opponent ID assignment
-
         player_id = self.ID
         opponent_id = get_opponent_id(board)
 
+        # Move count
         move_count += 1
 
         player_best_move = None
@@ -92,8 +91,6 @@ def check_centre(board):
     if legalMove(board, mid_tile):
         return mid_tile
 
-
-# Returns the opponents ID. Called each turn.
 def get_opponent_id(board):
     for row in board:
         for tile in row:
@@ -101,31 +98,6 @@ def get_opponent_id(board):
                 return tile
 
     return player_id * -1
-
-
-# Returns all the coordinates from the board
-def get_all_coords(board):
-    coords = []
-    for i in range(len(board)):
-        for j in range(len(board)):
-            tile = get_tile(board, (i, j))
-            coords.append(tile[1])
-    return coords
-
-
-# Return tile value and coordinates of a given player
-def get_player_tiles(board, given_id):
-    given_id_tiles = []
-    n = len(board)
-    
-    for i in range(n):
-        for j in range(n):
-            if board[i][j] == given_id:
-                coords = (i, j)
-                given_id_tile = get_tile(board, coords)
-                given_id_tiles.append(given_id_tile)
-
-    return given_id_tiles
 
 
 # Returns all the coordinates from the board that are empty
@@ -139,10 +111,11 @@ def get_empty_coords(board):
     return coords
 
 
-# Get value and coordinates of a tile
+# Returns the value and set of coordinates for a given tile
 def get_tile(board, coords):
     size = len(board)
     i, j = coords[0], coords[1]
+
     if 0 <= i < size and 0 <= j < size:
         value = board[i][j]
         tile = [value, coords]
@@ -151,7 +124,7 @@ def get_tile(board, coords):
         return [None, None]
 
 
-# Return tile in specified direction
+# Given a set of coordinates and a direction, returns the next tile over in that direction
 def look(board, coords, direction):
     tile = [None, None]
     
@@ -186,7 +159,8 @@ def look(board, coords, direction):
     return tile
 
 
-# Check 9-long row of tiles
+# Returns a list of tiles with the given tile at the centre of the list. If any None values are found, they are removed
+# from the list.
 def get_row(board, coords, direction):
     directions = []
     
@@ -225,6 +199,7 @@ def get_row(board, coords, direction):
            tile,
            right_start, right_m1, right_m2, right_end]
 
+    # Removing None values from the list
     final_row = []
     for i in range(len(row)):
         if row[i] != [None, None]:
@@ -233,7 +208,7 @@ def get_row(board, coords, direction):
     return final_row
 
 
-# Get the star around 
+# Return a list of each row around a given tile (horizontal, vertical, left-diagonal, and right-diagonal).
 def get_star(board, coords):
     star = []
     directions = [H, V, LD, RD]
@@ -245,24 +220,7 @@ def get_star(board, coords):
     return star
 
 
-#
-def row_possible(row, given_id):
-    max_row_size = 0
-    count = 0
-
-    for tile in row:
-        value = tile[0]
-        if value == EMPTY or value == given_id:
-            count += 1
-        else:
-            if count > max_row_size:
-                max_row_size = count
-            count = 0
-
-    return max_row_size >= 5
-
-
-# [0, (4, 2)] to [0, (4, 10)]; Score: 8
+# Return the score of a given row
 def get_row_score(row, given_id):
     other_id = given_id * -1
     row_score = 0
@@ -285,7 +243,7 @@ def get_row_score(row, given_id):
 
     return row_score
 
-# TODO: Change so it predicted new value of tile
+
 # Return score of tile
 def get_tile_score(board, given_id, coords):
     copy_board = deepcopy(board)
@@ -296,7 +254,6 @@ def get_tile_score(board, given_id, coords):
     i, j = tile[1]
 
     if value == EMPTY:
-
         copy_board[i][j] = given_id
     else:
         return [0, coords]
