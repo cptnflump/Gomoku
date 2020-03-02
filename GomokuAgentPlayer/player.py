@@ -37,6 +37,7 @@ RD = "RIGHT-DIAGONAL"
 
 EMPTY = 0
 
+
 # Player Class
 class Player(GomokuAgent):
     # Makes a legal player move depending on the opponents current tiles, and the 'best' move to make.
@@ -89,6 +90,7 @@ def check_centre(board):
     mid_tile = (mid, mid)
     if legalMove(board, mid_tile):
         return mid_tile
+
 
 def get_opponent_id(board):
     for row in board:
@@ -291,7 +293,6 @@ def get_best_moves(board, given_id, amount):
         best_moves.append(best_move)
 
     return best_moves
-
 
 
 # Returns a list of the 5 tiles from the given coordinate, with the given tile at the start of the list. If there are no
