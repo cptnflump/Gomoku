@@ -1,5 +1,5 @@
 #######################################################
-# Gomoku Platform (single game)
+# Gomoku Agent
 # Version 1.2.1
 #
 # Jake Smith, Jacob Roberts
