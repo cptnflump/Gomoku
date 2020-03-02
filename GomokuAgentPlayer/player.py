@@ -1,5 +1,5 @@
 #######################################################
-# Gomoku Platform (single game)
+# Gomoku Agent
 # Version 1.2.1
 #
 # Jake Smith, Jacob Roberts
@@ -37,6 +37,7 @@ RD = "RIGHT-DIAGONAL"
 
 EMPTY = 0
 
+
 # Player Class
 class Player(GomokuAgent):
     # Makes a legal player move depending on the opponents current tiles, and the 'best' move to make.
@@ -57,8 +58,8 @@ class Player(GomokuAgent):
 
         # First we check for opponent rows of three or four to block as highest priority
         # If there are no rows that need to be blocked it will look to play it's own fours or fives
-        # If there are no high priority moves to make (threes and fours), we run minimax to give us the best position
-        # In this case minimax looks four moves ahead, looking at four possible beneficial moves
+        # If there are no high priority moves to make (threes and fours), we run Minimax to give us the best position
+        # In this case Minimax looks four moves ahead, looking at four possible beneficial moves
         try:
             opponent_contains_inf = False
             opponent_best_moves = get_best_moves(board, opponent_id, 4)
@@ -72,7 +73,7 @@ class Player(GomokuAgent):
                     if move[0] == math.inf and legalMove(board, move[1]):
                         player_best_move = move[1]
             if player_best_move is None:
-                player_best_move = minimax(board, 4, self.ID)[1]
+                player_best_move = Minimax(board, 4, self.ID)[1]
         # An IndexError can occur in the case that the AI cannot find a beneficial move to make
         # This occurs generally at the end of game in which the board is nearly full
         except IndexError:
@@ -389,7 +390,7 @@ def create_board_score(board, given_id):
 # With this information, a number of possible moves from the current state are created (4 in this case)
 # To help increase the efficiency of this algorithm. Alpha Beta Pruning has been implemented.
 # Alpha Beta pruning speeds up Minimax by discarding sub-trees that do not need to be searched.
-def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=None):
+def Minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=None):
     board_copy = deepcopy(board)
     other_id = given_id * -1
 
@@ -406,7 +407,7 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
             y_coord = child[1][0]
             x_coord = child[1][1]
             board_copy[y_coord][x_coord] = given_id
-            minimax(board_copy, depth-1, other_id, alpha, beta, child)
+            Minimax(board_copy, depth-1, other_id, alpha, beta, child)
             board_score = create_board_score(board_copy, given_id)
             if board_score > max_score:
                 max_score = board_score
@@ -422,7 +423,7 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
             y_coord = child[1][0]
             x_coord = child[1][1]
             board_copy[y_coord][x_coord] = other_id
-            minimax(board_copy, depth-1, other_id, alpha, beta, child)
+            Minimax(board_copy, depth-1, other_id, alpha, beta, child)
             board_score = create_board_score(board, other_id)
             if board_score < min_score:
                 min_score = board_score
