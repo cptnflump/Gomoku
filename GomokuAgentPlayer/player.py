@@ -90,6 +90,8 @@ def check_centre(board):
     if legalMove(board, mid_tile):
         return mid_tile
 
+
+# Returns the ID of the opponent
 def get_opponent_id(board):
     for row in board:
         for tile in row:
@@ -243,7 +245,7 @@ def get_row_score(row, given_id):
     return row_score
 
 
-# Return score of tile
+# Return the score of a given tile
 def get_tile_score(board, given_id, coords):
     copy_board = deepcopy(board)
     total_score = 0
@@ -268,6 +270,7 @@ def get_tile_score(board, given_id, coords):
     return [total_score, coords]
 
 
+# Returns the score of every empty tile on the board
 def get_tile_scores(board, given_id):
     tiles = []
     empty_coords = get_empty_coords(board)
@@ -281,6 +284,7 @@ def get_tile_scores(board, given_id):
     return tiles
 
 
+# Returns the n best moves of a given player
 def get_best_moves(board, given_id, amount):
     best_moves = []
 
@@ -291,7 +295,6 @@ def get_best_moves(board, given_id, amount):
         best_moves.append(best_move)
 
     return best_moves
-
 
 
 # Returns a list of the 5 tiles from the given coordinate, with the given tile at the start of the list. If there are no
@@ -352,7 +355,7 @@ def get_row_amounts(board, coord, given_id):
     return amounts
 
 
-#
+# Returns the number of 5s, 4s, etc. that can be made on the board
 def get_board_amounts(board, given_id):
     empty_coords = get_empty_coords(board)
     total_amounts = [0, 0, 0, 0, 0]
