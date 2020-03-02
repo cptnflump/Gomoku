@@ -62,7 +62,6 @@ class Player(GomokuAgent):
         try:
             opponent_contains_inf = False
             opponent_best_moves = get_best_moves(board, opponent_id, 4)
-            print(opponent_best_moves)
             for move in opponent_best_moves:
                 if move[0] == math.inf and legalMove(board, move[1]):
                     player_best_move = move[1]
@@ -264,8 +263,9 @@ def get_tile_score(board, given_id, coords):
 
         row_score = get_row_score(row, given_id)
 
+        total_score += row_score
 
-    return [row_score, coords]
+    return [total_score, coords]
 
 
 def get_tile_scores(board, given_id):
