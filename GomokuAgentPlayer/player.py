@@ -1,5 +1,14 @@
+#######################################################
+# Gomoku Platform (single game)
+# Version 1.2.1
+#
+# Jake Smith, Jacob Roberts
+# Student Numbers: 901519, 913408
+# Swansea University
+# March 2020
+#
+
 # Imports
-import numpy as np
 from copy import deepcopy
 import math
 from misc import legalMove, winningTest
@@ -33,6 +42,7 @@ EMPTY = 0
 class Player(GomokuAgent):
     # Makes a legal player move depending on the opponents current tiles, and the 'best' move to make.
     def move(self, board):
+        print("\n")
         global opponent_id
         global player_id
         global move_count
@@ -43,18 +53,17 @@ class Player(GomokuAgent):
         opponent_id = get_opponent_id(board)
 
         move_count += 1
-        print("Move #{}".format(move_count))
 
         player_best_move = None
 
-        # check if first turn and place tile in center
-        # get rows of four
-        # get rows of three
-        # if none of the above run min max
+        # First we check for opponent rows of three or four to block as highest priority
+        # If there are no rows that need to be blocked it will look to play it's own fours or fives
+        # If there are no high priority moves to make (threes and fours), we run minimax to give us the best position
+        # In this case minimax looks four moves ahead, looking at four possible beneficial moves
         try:
-            print("PLAYER TO MOVE: {}".format(self.ID))
             opponent_contains_inf = False
             opponent_best_moves = get_best_moves(board, opponent_id, 4)
+            print(opponent_best_moves)
             for move in opponent_best_moves:
                 if move[0] == math.inf and legalMove(board, move[1]):
                     player_best_move = move[1]
@@ -66,35 +75,13 @@ class Player(GomokuAgent):
                         player_best_move = move[1]
             if player_best_move is None:
                 player_best_move = minimax(board, 4, self.ID)[1]
+        # An IndexError can occur in the case that the AI cannot find a beneficial move to make
+        # This occurs generally at the end of game in which the board is nearly full
         except IndexError:
             coords = get_empty_coords(board)
             player_best_move = coords[0]
 
-        print("Player {} best move: {}".format(self.ID, player_best_move))
         return player_best_move
-
-        # opponent_best_move = get_best_move(board, opponent_id)
-
-        # get_best_moves(board, player_id, 2)
-
-        # Note: attack vs def. if second player to move, value block first
-        # if (player_best_move[0] >= opponent_best_move[0]):
-        #    best_coord = player_best_move[1]
-        # else:
-        #    best_coord = opponent_best_move[1]
-
-        # print("Placing tile at: " + str(best_coord))
-        
-        # return best_coord
-
-
-# Makes a random legal move.
-def move_randomly(self, board):
-    while True:
-        move_loc = tuple(np.random.randint(self.BOARD_SIZE, size=2))
-        print("Move loc:", move_loc)
-        if legalMove(board, move_loc):
-            return move_loc
 
 
 # Returns centre tile coords if empty and None otherwise
@@ -106,7 +93,7 @@ def check_centre(board):
         return mid_tile
 
 
-# Returns the opponents ID. Only called once per game.
+# Returns the opponents ID. Called each turn.
 def get_opponent_id(board):
     for row in board:
         for tile in row:
@@ -138,10 +125,6 @@ def get_player_tiles(board, given_id):
                 given_id_tile = get_tile(board, coords)
                 given_id_tiles.append(given_id_tile)
 
-    print("Here are the tiles that belong to player_id={}:".format(given_id))
-    print(given_id_tiles)
-    print()
-
     return given_id_tiles
 
 
@@ -160,7 +143,6 @@ def get_empty_coords(board):
 def get_tile(board, coords):
     size = len(board)
     i, j = coords[0], coords[1]
-    # print ("The value at {} is {}.\n".format(coords, value))
     if 0 <= i < size and 0 <= j < size:
         value = board[i][j]
         tile = [value, coords]
@@ -200,14 +182,6 @@ def look(board, coords, direction):
         # North-west
         elif direction == NW:
             tile = get_tile(board, (i - 1, j - 1))
-
-        # Info
-        # if (tile[1] is not None):
-        #    print ("The tile {} of {} is {}.".format(
-        #        direction.lower(), coords, tile))
-        # else:
-        #    print ("There is no tile {} of {}.".format(
-        #        direction.lower(), coords))
 
     return tile
 
@@ -311,28 +285,6 @@ def get_row_score(row, given_id):
 
     return row_score
 
-
-def get_board_score(board, given_id):
-    other_id = given_id * -1
-    board_score = 0
-
-    empty_tiles = get_empty_coords(board)
-
-    for tile in empty_tiles:
-        given_tile_score = get_tile_score(board, given_id, tile)
-        other_tile_score = get_tile_score(board, other_id, tile)
-
-        if given_tile_score == math.inf:
-            return given_tile_score
-        if other_tile_score == math.inf:
-            return -math.inf
-
-        value = given_tile_score[0] + other_tile_score[0]
-        board_score += value
-
-    return board_score
-
-
 # TODO: Change so it predicted new value of tile
 # Return score of tile
 def get_tile_score(board, given_id, coords):
@@ -355,12 +307,8 @@ def get_tile_score(board, given_id, coords):
 
         row_score = get_row_score(row, given_id)
 
-        total_score += row_score
-        
-    # print ("Score for {} for player_id={}: {}".format(
-    #    coords, player_id, total_score))
 
-    return [total_score, coords]
+    return [row_score, coords]
 
 
 def get_tile_scores(board, given_id):
@@ -387,29 +335,6 @@ def get_best_moves(board, given_id, amount):
 
     return best_moves
 
-
-# Analyse player
-def get_best_move(board, given_id):
-    other_id = given_id * -1
-
-    given_tile_scores = get_tile_scores(board, given_id)
-    other_tile_scores = get_tile_scores(board, other_id)
-
-    best_given_move = given_tile_scores[0]
-    best_other_move = other_tile_scores[0]
-
-    print("Best move for {}: {}\nBest move for {}: {}".format(
-        given_id,
-        best_given_move,
-        other_id,
-        best_other_move))
-
-    if best_given_move > best_other_move:
-        best_move = best_given_move
-    else:
-        best_move = best_other_move
-
-    return best_move
 
 
 # Returns a list of the 5 tiles from the given coordinate, with the given tile at the start of the list. If there are no
@@ -484,6 +409,10 @@ def get_board_amounts(board, given_id):
     return total_amounts
 
 
+# This looks at the board from the perspective of a given player
+# A score is generated based on the number of possible (not already formed) 2's, 3's, 4's and 5's on the board
+# Larger possible rows are scored much higher
+# This is use in the Minimax algorithm to determine an overall score for a potential move
 def create_board_score(board, given_id):
     row_data = get_board_amounts(board, given_id)
 
@@ -495,7 +424,11 @@ def create_board_score(board, given_id):
     return board_score
 
 
-# The player will always be the one maximising
+# This function is the implementation of the Minimax algorithm.
+# This algorithm takes a state (board) and maximising player
+# With this information, a number of possible moves from the current state are created (4 in this case)
+# To help increase the efficiency of this algorithm. Alpha Beta Pruning has been implemented.
+# Alpha Beta pruning speeds up Minimax by discarding sub-trees that do not need to be searched.
 def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=None):
     board_copy = deepcopy(board)
     other_id = given_id * -1
