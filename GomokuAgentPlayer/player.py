@@ -21,6 +21,7 @@ NE = "NORTH-EAST"
 NW = "NORTH-WEST"
 SE = "SOUTH-EAST"
 SW = "SOUTH-WEST"
+DIRECTIONS = [N, NE, E, SE, S, SW, W, NW]
 
 H = "HORIZONTAL"
 V = "VERTICAL"
@@ -45,17 +46,24 @@ class Player(GomokuAgent):
             opponent_id = get_opponent_id(board)
             print("Opponent ID: " + str(opponent_id))
 
+
+
         move_count += 1
-        print ("Move #{}".format(move_count))
+        print ("\nMove #{}".format(move_count))
+        print ("Player to move: {}".format(self.ID))
+        get_board_amounts(board, self.ID)
+
 
         best_move = None
 
         try:
             player_best_move = minimax(board, 1, player_id)[1]
-            print("Player best move: {}".format(player_best_move))
+            #print("Player best move: {}".format(player_best_move))
         except IndexError:
             coords = get_empty_coords(board)
             player_best_move = coords[0]
+
+        print ("Player {} placing tile at {}.".format(self.ID, player_best_move))
 
         return player_best_move
 
@@ -197,6 +205,197 @@ def look(board, coords, direction):
     return tile
 
 
+#
+def get_row3(board, given_id, coord, direction):
+    copyboard = deepcopy(board)
+    directions = []
+
+    tile = get_tile(board, coord)
+    value = tile[0]
+    i, j = coord[0], coord[1]
+
+    if value == EMPTY:
+        value = given_id
+
+    if direction == V:
+        directions.append(N)
+        directions.append(S)
+    elif direction == H:
+        directions.append(E)
+        directions.append(W)
+    elif direction == RD:
+        directions.append(NE)
+        directions.append(SW)
+    elif direction == LD:
+        directions.append(NW)
+        directions.append(SE)
+
+    left = look(copyboard, coord, directions[0])
+    right = look(copyboard, coord, directions[1])
+    left_end = look(copyboard, left[1], directions[0])
+    right_end = look(copyboard, right[1], directions[1])
+
+    row = [left_end[0], left[0], value, right[0], right_end[0]]
+
+    return row
+
+
+#
+def makes_five(board, given_id, coord, direction):
+    FIVES = [
+        [given_id, given_id, given_id, given_id, given_id],
+    ]
+
+    row = get_row3(board, given_id, coord, direction)
+
+    for five in FIVES:
+        if row == five:
+            return True
+    return False
+
+#
+def makes_four(board, given_id, coord, direction):
+    FOURS = [
+        [given_id, given_id, given_id, given_id, EMPTY],
+        [EMPTY, given_id, given_id, given_id, given_id],
+        [given_id, EMPTY, given_id, given_id, given_id],
+        [given_id, given_id, given_id, EMPTY, given_id],
+
+        [given_id, given_id, given_id, given_id, None],
+        [None, given_id, given_id, given_id, given_id],
+        [given_id, EMPTY, given_id, given_id, given_id],
+        [given_id, given_id, given_id, EMPTY, given_id],
+
+    ]
+
+    row = get_row3(board, given_id, coord, direction)
+
+    for four in FOURS:
+        if row == four:
+            return True
+    return False
+
+
+#
+def makes_three(board, given_id, coord, direction):
+    THREES = [
+        [EMPTY, given_id, given_id, given_id, EMPTY],
+        [given_id, given_id, given_id, EMPTY, EMPTY],
+        [EMPTY, EMPTY, given_id, given_id, given_id],
+        [None, given_id, given_id, given_id, EMPTY],
+        [given_id, given_id, given_id, EMPTY, None],
+        [None, EMPTY, given_id, given_id, given_id],
+        [given_id, given_id, given_id, None, None],
+        [None, None, given_id, given_id, given_id],
+    ]
+
+    row = get_row3(board, given_id, coord, direction)
+
+    for three in THREES:
+        if row == three:
+            return True
+    return False
+
+
+#
+def makes_two(board, given_id, coord, direction):
+    TWOS = [
+        [EMPTY, EMPTY, given_id, given_id, EMPTY],
+        [EMPTY, given_id, given_id, EMPTY, EMPTY],
+        [None, EMPTY, given_id, given_id, EMPTY],
+        [EMPTY, given_id, given_id, EMPTY, None],
+        [None, None, given_id, given_id, EMPTY],
+        [EMPTY, given_id, given_id, None, None],
+
+    ]
+
+    row = get_row3(board, given_id, coord, direction)
+
+    for two in TWOS:
+        if row == two:
+            return True
+    return False
+
+
+#
+def makes_one(board, given_id, coord, direction):
+    ONES = [
+        [None, None, given_id, EMPTY, EMPTY],
+        [None, EMPTY, given_id, EMPTY, EMPTY],
+        [EMPTY, EMPTY, given_id, EMPTY, EMPTY],
+        [EMPTY, EMPTY, given_id, EMPTY, None],
+        [EMPTY, EMPTY, given_id, None, None]
+    ]
+
+    row = get_row3(board, given_id, coord, direction)
+
+    return row in ONES
+
+
+# Returns a list of the 5 tiles from the given coordinate, with the given tile at the start of the list. If there are no
+# tiles to add, the list will be returned as it is.
+# @direction = N, NE, E, SE, S, SW, W, NW
+def get_row2(board, coord, direction):
+    row = []
+
+    tile = get_tile(board, coord)
+
+    row.append(tile)
+    for i in range(4):
+        next_tile = look(board, row[i][1], direction)
+        row.append(next_tile)
+
+    final_row = []
+    for i in range(len(row)):
+        if row[i] != [None, None]:
+            final_row.append(row[i])
+
+    return final_row
+
+
+# Returns a list of the amount of rows a tile can make. For example, [2, 1, 1, 1, 1] means the given player can make
+# 2 fives, 1 four, 1 three, 1 two, and 1 one.
+# NOTE: Enter a coordinate that is an empty tile.
+def get_row_amounts(board, coord, given_id):
+    copyboard = deepcopy(board)
+    numFives, numFours, numThrees, numTwos, numOnes = 0, 0, 0, 0, 0
+
+    directions = [H, V, LD, RD]
+
+    for direction in directions:
+        if makes_five(board, given_id, coord, direction):
+            numFives += 1
+        elif makes_four(board, given_id, coord, direction):
+            numFours += 1
+        elif makes_three(board, given_id, coord, direction):
+            numThrees += 1
+        elif makes_two(board, given_id, coord, direction):
+            numTwos += 1
+
+    if makes_one(board, given_id, coord, directions[0])\
+            or makes_one(board, given_id, coord, directions[1])\
+            or makes_one(board, given_id, coord, directions[2])\
+            or makes_one(board, given_id, coord, directions[3]):
+        numOnes +=1
+
+    return [numFives, numFours, numThrees, numTwos, numOnes]
+
+
+#
+def get_board_amounts(board, given_id):
+    empty_coords = get_empty_coords(board)
+    total_amounts = [0, 0, 0, 0, 0]
+
+    for coord in empty_coords:
+        tile_row_amounts = get_row_amounts(board, coord, given_id)
+
+        for i in range(len(tile_row_amounts)):
+            total_amounts[i] += tile_row_amounts[i]
+
+    print(total_amounts)
+    return total_amounts
+
+
 # Check 9-long row of tiles
 def get_row(board, coords, direction):
     directions = []
@@ -254,6 +453,15 @@ def get_star(board, coords):
         star.append(row)
 
     return star
+
+
+# Function which analyses a tile and returns a list with the amount of 5s, 4s, etc.
+def analyse_tile(board, coords, given_id):
+    copyboard = deepcopy(board)
+
+    tile = get_tile(board, coords)
+    i, j, = tile[1]
+
 
 
 #
