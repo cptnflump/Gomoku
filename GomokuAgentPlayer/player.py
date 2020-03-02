@@ -51,17 +51,17 @@ class Player(GomokuAgent):
         # get rows of four
         # get rows of three
         # if none of the above run min max
-        opponent_best_moves = get_best_moves(board, opponent_id, 4)
-        for move in opponent_best_moves:
-            if move[0] == math.inf and legalMove(board, move[1]):
-                player_best_move = move[1]
-        if player_best_move is None:
-            try:
-                print("PLAYER TO MOVE: {}".format(self.ID))
+        try:
+            print("PLAYER TO MOVE: {}".format(self.ID))
+            opponent_best_moves = get_best_moves(board, opponent_id, 4)
+            for move in opponent_best_moves:
+                if move[0] == math.inf and legalMove(board, move[1]):
+                    player_best_move = move[1]
+            if player_best_move is None:
                 player_best_move = minimax(board, 4, self.ID)[1]
-            except IndexError:
-                coords = get_empty_coords(board)
-                player_best_move = coords[0]
+        except IndexError:
+            coords = get_empty_coords(board)
+            player_best_move = coords[0]
 
         print("Player {} best move: {}".format(self.ID, player_best_move))
         return player_best_move
@@ -481,8 +481,8 @@ def create_board_score(board, given_id):
     row_data = get_board_amounts(board, given_id)
 
     twos_score = row_data[3] * 8
-    threes_score = row_data[2] * 24
-    fours_score = row_data[1] * (8**4)
+    threes_score = row_data[2] * (8**4)
+    fours_score = row_data[1] * (8**8)
     fives_score = row_data[0] * (8**16)
     board_score = fives_score + fours_score + threes_score + twos_score
     return board_score
