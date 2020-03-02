@@ -53,10 +53,17 @@ class Player(GomokuAgent):
         # if none of the above run min max
         try:
             print("PLAYER TO MOVE: {}".format(self.ID))
+            opponent_contains_inf = False
             opponent_best_moves = get_best_moves(board, opponent_id, 4)
             for move in opponent_best_moves:
                 if move[0] == math.inf and legalMove(board, move[1]):
                     player_best_move = move[1]
+                    opponent_contains_inf = True
+            if not opponent_contains_inf:
+                player_best_moves = get_best_moves(board, player_id, 4)
+                for move in player_best_moves:
+                    if move[0] == math.inf and legalMove(board, move[1]):
+                        player_best_move = move[1]
             if player_best_move is None:
                 player_best_move = minimax(board, 4, self.ID)[1]
         except IndexError:
