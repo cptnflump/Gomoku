@@ -1,9 +1,8 @@
 # Imports
-import math
 import numpy as np
-from copy import copy, deepcopy
+from copy import deepcopy
 import math
-from misc import legalMove, rowTest, diagTest, winningTest
+from misc import legalMove, winningTest
 from gomokuAgent import GomokuAgent
 
 # Variables
@@ -42,10 +41,9 @@ class Player(GomokuAgent):
 
         player_id = self.ID
         opponent_id = get_opponent_id(board)
-        print("Opponent ID: " + str(opponent_id))
 
         move_count += 1
-        print ("Move #{}".format(move_count))
+        print("Move #{}".format(move_count))
 
         player_best_move = None
 
@@ -55,17 +53,17 @@ class Player(GomokuAgent):
         # if none of the above run min max
         opponent_best_moves = get_best_moves(board, opponent_id, 4)
         for move in opponent_best_moves:
-            if move[0] == math.inf and legalMove(board,move[1]):
+            if move[0] == math.inf and legalMove(board, move[1]):
                 player_best_move = move[1]
         if player_best_move is None:
             try:
                 print("PLAYER TO MOVE: {}".format(self.ID))
-                player_best_move = minimax(board, 3, self.ID)[1]
-                print("Player {} best move: {}".format(self.ID, player_best_move))
+                player_best_move = minimax(board, 4, self.ID)[1]
             except IndexError:
                 coords = get_empty_coords(board)
                 player_best_move = coords[0]
 
+        print("Player {} best move: {}".format(self.ID, player_best_move))
         return player_best_move
 
         # opponent_best_move = get_best_move(board, opponent_id)
@@ -133,11 +131,12 @@ def get_player_tiles(board, given_id):
                 given_id_tile = get_tile(board, coords)
                 given_id_tiles.append(given_id_tile)
 
-    print ("Here are the tiles that belong to player_id={}:".format(given_id))
-    print (given_id_tiles)
-    print ()
+    print("Here are the tiles that belong to player_id={}:".format(given_id))
+    print(given_id_tiles)
+    print()
 
     return given_id_tiles
+
 
 # Returns all the coordinates from the board that are empty
 def get_empty_coords(board):
@@ -145,7 +144,7 @@ def get_empty_coords(board):
     for i in range(len(board)):
         for j in range(len(board)):
             tile = get_tile(board, (i, j))
-            if (tile[0] == EMPTY):
+            if tile[0] == EMPTY:
                 coords.append(tile[1])
     return coords
 
@@ -303,9 +302,6 @@ def get_row_score(row, given_id):
                 row_score += 1
             consec = 0
 
-
-    #print ("{} to {}; Score: {}".format(row[0], row[-1], row_score))
-
     return row_score
 
 
@@ -329,23 +325,24 @@ def get_board_score(board, given_id):
 
     return board_score
 
+
 # TODO: Change so it predicted new value of tile
 # Return score of tile
 def get_tile_score(board, given_id, coords):
-    copyboard = deepcopy(board)
+    copy_board = deepcopy(board)
     total_score = 0
     
     tile = get_tile(board, coords)
     value = tile[0]
     i, j = tile[1]
 
-    if (value == EMPTY):
+    if value == EMPTY:
 
-        copyboard[i][j] = given_id
+        copy_board[i][j] = given_id
     else:
         return [0, coords]
 
-    star = get_star(copyboard, coords)
+    star = get_star(copy_board, coords)
     for x in range(len(star)):
         row = star[x]
 
@@ -369,8 +366,6 @@ def get_tile_scores(board, given_id):
 
     tiles = sorted(tiles, key=lambda k: k[0], reverse=True)
 
-    #print (tiles)
-    
     return tiles
 
 
@@ -389,17 +384,14 @@ def get_best_moves(board, given_id, amount):
 # Analyse player
 def get_best_move(board, given_id):
     other_id = given_id * -1
-    best_move = None
 
     given_tile_scores = get_tile_scores(board, given_id)
     other_tile_scores = get_tile_scores(board, other_id)
 
-    # tiles = get_tile_scores(board, given_id)
-
     best_given_move = given_tile_scores[0]
     best_other_move = other_tile_scores[0]
 
-    print ("Best move for {}: {}\nBest move for {}: {}".format(
+    print("Best move for {}: {}\nBest move for {}: {}".format(
         given_id,
         best_given_move,
         other_id,
@@ -449,7 +441,6 @@ def get_row_amounts(board, coord, given_id):
     if value == given_id * -1:
         return amounts
 
-
     elif value == EMPTY:
         copyboard[i][j] = given_id
 
@@ -486,8 +477,8 @@ def get_board_amounts(board, given_id):
     return total_amounts
 
 
-def create_board_score(board,given_id):
-    row_data = get_board_amounts(board,given_id)
+def create_board_score(board, given_id):
+    row_data = get_board_amounts(board, given_id)
 
     twos_score = row_data[3] * 8
     threes_score = row_data[2] * 24
@@ -506,8 +497,6 @@ def minimax(board, depth, given_id, alpha=-math.inf, beta=math.inf, curr_child=N
         return curr_child
 
     children = get_best_moves(board_copy, given_id, 4)
-    if depth == 3:
-        print(children)
 
     # Maximising player
     if given_id == player_id:
