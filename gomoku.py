@@ -18,7 +18,7 @@ from misc import winningTest, legalMove
 
 BOARD_SIZE = 11   # size of the board is 11-by-11
 X_IN_A_LINE = 5   # play the standard game with 5 stones in a line
-TIME_OUT = 5      # player must return a move within 5 seconds
+TIME_OUT = 5000      # player must return a move within 5 seconds
 
 # an empty class to host the time-out exception
 class timeOutException(Exception):
@@ -41,9 +41,10 @@ def turn(board, player, turn_id):
     tempBoard = np.array(board)
 
     # set the time out alarm and call player's move function
-    signal.alarm(TIME_OUT)
+    #signal.alarm(TIME_OUT)
     try:
         moveLoc = player.move(tempBoard)
+        #input("press")
     except timeOutException:        
         return turn_id*-1, board
     signal.alarm(0)
